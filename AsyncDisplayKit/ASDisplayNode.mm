@@ -9,6 +9,7 @@
 #import "ASDisplayNode.h"
 #import "ASDisplayNode+Subclasses.h"
 #import "ASDisplayNodeInternal.h"
+#import "ASDisplayNodeDelegate.h"
 
 #import <objc/runtime.h>
 
@@ -575,6 +576,9 @@ void ASDisplayNodePerformBlockOnMainThread(void (^block)())
 
 - (void)layoutDidFinish
 {
+    if (_delegate && [_delegate respondsToSelector:@selector(nodeDidLayoutSubnodes)]) {
+        [_delegate nodeDidLayoutSubnodes];
+    }
 }
 
 - (CATransform3D)_transformToAncestor:(ASDisplayNode *)ancestor
@@ -1051,6 +1055,10 @@ static NSInteger incrementIfFound(NSInteger i) {
   if (!_supernode)
     return;
 
+  if (_delegate && [_delegate respondsToSelector:@selector(nodeWillEndDisplay)]) {
+     [_delegate nodeWillEndDisplay];
+  }
+    
   // Do this before removing the view from the hierarchy, as the node will clear its supernode pointer when its view is removed from the hierarchy.
   [_supernode _removeSubnode:self];
 
@@ -1060,12 +1068,21 @@ static NSInteger incrementIfFound(NSInteger i) {
     } else {
       [_view removeFromSuperview];
     }
+      
+    if (_delegate && [_delegate respondsToSelector:@selector(nodeDidEndDisplay)]) {
+      [_delegate nodeDidEndDisplay];
+    }
+      
   } else {
     dispatch_async(dispatch_get_main_queue(), ^{
       if (_flags.layerBacked) {
         [_layer removeFromSuperlayer];
       } else {
         [_view removeFromSuperview];
+      }
+        
+      if (_delegate && [_delegate respondsToSelector:@selector(nodeDidEndDisplay)]) {
+        [_delegate nodeDidEndDisplay];
       }
     });
   }
@@ -1210,6 +1227,12 @@ static NSInteger incrementIfFound(NSInteger i) {
   _supernode = supernode;
 }
 
+- (void)__setDelegate:(id<ASDisplayNodeDelegate>)delegate
+{
+    ASDN::MutexLocker l(_propertyLock);
+    _delegate = delegate;
+}
+
 // Track that a node will be displayed as part of the current node hierarchy.
 // The node sending the message should usually be passed as the parameter, similar to the delegation pattern.
 - (void)_pendingNodeWillDisplay:(ASDisplayNode *)node
@@ -1285,7 +1308,12 @@ static NSInteger incrementIfFound(NSInteger i) {
 - (CGSize)calculateSizeThatFits:(CGSize)constrainedSize
 {
   ASDisplayNodeAssertThreadAffinity(self);
-  return CGSizeZero;
+  if (_delegate && [_delegate respondsToSelector:@selector(calculateSizeForNode:thatFits:)]) {
+    return [_delegate calculateSizeForNode:self thatFits:constrainedSize];
+  }
+  else {
+    return CGSizeZero;
+  }
 }
 
 - (CGSize)calculatedSize
@@ -1315,6 +1343,9 @@ static NSInteger incrementIfFound(NSInteger i) {
 - (void)didLoad
 {
   ASDisplayNodeAssertMainThread();
+  if(_delegate && [_delegate respondsToSelector:@selector(nodeDidLoad)]) {
+    [_delegate nodeDidLoad];
+  }
 }
 
 - (void)willEnterHierarchy
@@ -1376,6 +1407,9 @@ static NSInteger incrementIfFound(NSInteger i) {
 - (void)layout
 {
   ASDisplayNodeAssertMainThread();
+  if (_delegate && [_delegate respondsToSelector:@selector(nodeWillLayoutSubnodes)]) {
+    [_delegate nodeWillLayoutSubnodes];
+  }
 }
 
 - (void)displayWillStart
@@ -1393,6 +1427,10 @@ static NSInteger incrementIfFound(NSInteger i) {
     [CATransaction commit];
     [self.layer addSublayer:_placeholderLayer];
   }
+    
+  if (_delegate && [_delegate respondsToSelector:@selector(nodeWillDisplay)]) {
+    [_delegate nodeWillDisplay];
+  }
 }
 
 - (void)displayDidFinish
@@ -1400,6 +1438,10 @@ static NSInteger incrementIfFound(NSInteger i) {
   [self _pendingNodeDidDisplay:self];
 
   [_supernode subnodeDisplayDidFinish:self];
+    
+  if (_delegate && [_delegate respondsToSelector:@selector(nodeDidDisplay)]) {
+    [_delegate nodeDidDisplay];
+  }
 }
 
 - (void)subnodeDisplayWillStart:(ASDisplayNode *)subnode
@@ -1494,7 +1536,6 @@ static NSInteger incrementIfFound(NSInteger i) {
     return CGRectContainsPoint(UIEdgeInsetsInsetRect(self.bounds, slop), point);
   }
 }
-
 
 #pragma mark - Pending View State
 - (_ASPendingState *)pendingViewState

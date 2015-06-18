@@ -17,6 +17,7 @@
 #import "ASDisplayNode.h"
 #import "ASSentinel.h"
 #import "ASThread.h"
+#import "ASDisplayNodeDelegate.h"
 
 BOOL ASDisplayNodeSubclassOverridesSelector(Class subclass, SEL selector);
 CGFloat ASDisplayNodeScreenScale();
@@ -31,6 +32,7 @@ typedef NS_OPTIONS(NSUInteger, ASDisplayNodeMethodOverrides) {
 };
 
 @class _ASPendingState;
+@protocol ASDisplayNodeDelegate;
 
 // Allow 2^n increments of begin disabling hierarchy notifications
 #define VISIBILITY_NOTIFICATIONS_DISABLED_BITS 4
@@ -44,7 +46,8 @@ typedef NS_OPTIONS(NSUInteger, ASDisplayNodeMethodOverrides) {
   ASDN::RecursiveMutex _propertyLock;
 
   ASDisplayNode * __weak _supernode;
-
+  id<ASDisplayNodeDelegate> __weak _delegate;
+    
   ASSentinel *_displaySentinel;
   ASSentinel *_replaceAsyncSentinel;
 
@@ -123,6 +126,7 @@ typedef NS_OPTIONS(NSUInteger, ASDisplayNodeMethodOverrides) {
 
 - (void)__layout;
 - (void)__setSupernode:(ASDisplayNode *)supernode;
+- (void)__setDelegate:(id<ASDisplayNodeDelegate>)delegate;
 
 // Changed before calling willEnterHierarchy / didExitHierarchy.
 @property (nonatomic, readwrite, assign, getter = isInHierarchy) BOOL inHierarchy;

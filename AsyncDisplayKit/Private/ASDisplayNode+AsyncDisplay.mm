@@ -74,6 +74,10 @@ static void __ASDisplayLayerDecrementConcurrentDisplayCount(BOOL displayIsAsync,
     return [self drawParametersForAsyncLayer:self.asyncLayer];
   }
 
+  if (_delegate && [_delegate respondsToSelector:@selector(drawParametersForNode:)]) {
+      return [_delegate drawParametersForNode:self];
+  }
+
   return nil;
 }
 
