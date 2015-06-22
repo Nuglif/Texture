@@ -222,6 +222,13 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  */
 - (void)removeFromSupernode;
 
+/**
+ * @abstract Bring this node to the front.
+ *
+ * @discussion The node's view will be automatically removed and add to the supernode's view.
+ */
+- (void)bringSubnodeToFront:(ASDisplayNode *)node;
+
 /** 
  * @abstract The receiver's immediate subnodes.
  */

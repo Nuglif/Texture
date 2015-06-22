@@ -1008,6 +1008,13 @@ static NSInteger incrementIfFound(NSInteger i) {
   [self _insertSubnode:subnode atSubnodeIndex:idx sublayerIndex:sublayerIndex andRemoveSubnode:nil];
 }
 
+- (void)bringSubnodeToFront:(ASDisplayNode *)node {
+    ASDisplayNodeAssertThreadAffinity(self);
+    ASDN::MutexLocker l(_propertyLock);
+    
+    [node removeFromSupernode];
+    [self addSubnode:node];
+}
 
 - (void)_addSubnodeSubviewOrSublayer:(ASDisplayNode *)subnode
 {

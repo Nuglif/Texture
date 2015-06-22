@@ -65,10 +65,10 @@
 
 - (void)addChildNodeController:(ASDisplayNodeController *)nodeController
 {
-    [self addChildNodeController:nodeController toSuperNode:self.node];
+    [self addChildNodeController:nodeController superNode:self.node];
 }
 
-- (void)addChildNodeController:(ASDisplayNodeController *)nodeController toSuperNode:(ASDisplayNode *)superNode
+- (void)addChildNodeController:(ASDisplayNodeController *)nodeController superNode:(ASDisplayNode *)superNode
 {
     @synchronized(_childControllers) {
         [self.childControllers addObject:nodeController];

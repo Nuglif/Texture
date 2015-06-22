@@ -22,7 +22,7 @@
 - (void)nodeDidLoad;
 
 - (void)addChildNodeController:(ASDisplayNodeController *)nodeController;
-- (void)addChildNodeController:(ASDisplayNodeController *)nodeController toSuperNode:(ASDisplayNode *)superNode;
+- (void)addChildNodeController:(ASDisplayNodeController *)nodeController superNode:(ASDisplayNode *)superNode;
 - (void)removeFromParentNodeController;
 
 - (void)willMoveToParentNodeController:(ASDisplayNodeController *)parentNodeController;
