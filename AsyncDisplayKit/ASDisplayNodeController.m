@@ -75,7 +75,7 @@
     }
     nodeController.parentNodeController = self;
     
-    if(!superNode.layerBacked) {
+    if(!superNode.isLayerBacked && (superNode.isLayerBacked != nodeController.node.isLayerBacked)) {
         nodeController.node.layerBacked = NO;
     }
     
