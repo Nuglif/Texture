@@ -439,6 +439,16 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  */
 - (CGRect)convertRect:(CGRect)rect fromNode:(ASDisplayNode *)node;
 
+/** @name UIResponder methods */
+
+// By default these fall through to the underlying view, but can be overridden.
+- (BOOL)canBecomeFirstResponder;                                            // default==NO
+- (BOOL)becomeFirstResponder;                                               // default==NO (no-op)
+- (BOOL)canResignFirstResponder;                                            // default==YES
+- (BOOL)resignFirstResponder;                                               // default==NO (no-op)
+- (BOOL)isFirstResponder;
+- (BOOL)canPerformAction:(SEL)action withSender:(id)sender;
+
 @end
 
 
@@ -539,6 +549,9 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
 @property (atomic, assign)           BOOL accessibilityElementsHidden;
 @property (atomic, assign)           BOOL accessibilityViewIsModal;
 @property (atomic, assign)           BOOL shouldGroupAccessibilityChildren;
+
+// Accessibility identification support
+@property (nonatomic, copy)          NSString *accessibilityIdentifier;
 
 @end
 
