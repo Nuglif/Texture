@@ -75,14 +75,16 @@
     }
     nodeController.parentNodeController = self;
     
-    if(!superNode.isLayerBacked && (superNode.isLayerBacked != nodeController.node.isLayerBacked)) {
+    ASDisplayNode *controllerSuperNode = superNode ?: self.node;
+    
+    if(!controllerSuperNode.isLayerBacked && (controllerSuperNode.isLayerBacked != nodeController.node.isLayerBacked)) {
         nodeController.node.layerBacked = NO;
     }
     
-    CGSize calculatedSize = [self calculateSizeForNode:nodeController.node thatFits:superNode.calculatedSize];
+    CGSize calculatedSize = [self calculateSizeForNode:nodeController.node thatFits:controllerSuperNode.calculatedSize];
     [nodeController.node measure:calculatedSize];
     
-    [superNode addSubnode:nodeController.node];
+    [controllerSuperNode addSubnode:nodeController.node];
     [nodeController didMoveToParentNodeController:self];
 }
 
