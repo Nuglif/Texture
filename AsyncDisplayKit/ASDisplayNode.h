@@ -372,7 +372,7 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  * This method is used to notify the node that it should purge any content that is both expensive to fetch and to
  * retain in memory.
  *
- * @see [ASDisplayNode(Subclassing) clearFetchedData] and [ASDisplayNode(Subclassing) fetchData]
+ * @see ASDisplayNode(Subclassing):clearFetchedData and fetchData
  */
 - (void)recursivelyClearFetchedData;
 
@@ -383,7 +383,7 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  *
  * @discussion Fetches content from remote sources for the current node and all subnodes.
  *
- * @see [ASDisplayNode(Subclassing) fetchData] and [ASDisplayNode(Subclassing) clearFetchedData]
+ * @see ASDisplayNode(Subclassing):fetchData and clearFetchedData
  */
 - (void)recursivelyFetchData;
 
