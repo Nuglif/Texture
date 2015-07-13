@@ -12,7 +12,7 @@
 
 #define NumberOfSections 10
 #define NumberOfRowsPerSection 20
-#define NumberOfReloadIterations 50
+#define NumberOfReloadIterations 250
 
 @interface ASTestTableView : ASTableView
 @property (atomic, copy) void (^willDeallocBlock)(ASTableView *tableView);
