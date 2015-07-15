@@ -18,6 +18,8 @@
 @property (nonatomic, readonly) NSArray *childNodeControllers;
 
 - (void)createNode;
+- (void)configureNode;
+
 - (BOOL)isNodeCreated;
 - (void)nodeDidLoad;
 

@@ -736,6 +736,12 @@ static inline CATransform3D _calculateTransformFromReferenceToTarget(ASDisplayNo
   [self displayDidFinish];
 }
 
+#pragma mark - ASDisplayNodeContainerDelegate
+- (void)nodeHierarchyDidDisplay:(ASDisplayNode *)node
+{
+    
+}
+
 #pragma mark - CALayerDelegate
 
 // We are only the delegate for the layer when we are layer-backed, as UIView performs this funcition normally
@@ -1772,7 +1778,7 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
 
 - (BOOL)canPerformAction:(SEL)action withSender:(id)sender {
     ASDisplayNodeAssertMainThread();
-    return !self.layerBacked && [self.view canPerformAction:action withSender:sender];
+    return !self.layerBacked && [self respondsToSelector:action];
 }
 
 @end
@@ -1816,26 +1822,49 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
 
 - (NSString *)descriptionForRecursiveDescription
 {
-  NSString *creationTypeString = nil;
+  NSString *creationTypeString = @"";
 #if TIME_DISPLAYNODE_OPS
   creationTypeString = [NSString stringWithFormat:@"cr8:%.2lfms dl:%.2lfms ap:%.2lfms ad:%.2lfms",  1000 * _debugTimeToCreateView, 1000 * _debugTimeForDidLoad, 1000 * _debugTimeToApplyPendingState, 1000 * _debugTimeToAddSubnodeViews];
 #endif
 
-  return [NSString stringWithFormat:@"<%@ alpha:%.2f isLayerBacked:%d %@>", self.description, self.alpha, self.isLayerBacked, creationTypeString];
+  return [NSString stringWithFormat:@"<%@ alpha:%.2f isLayerBacked:%d isDisplaySuspended:%d %@>", self.description, self.alpha, self.isLayerBacked, self.displaySuspended, creationTypeString];
+}
+
+- (NSString *)descriptionForRecursiveDescriptionWithMemoryUsageAndReturnBytes:(long long *)bytes {
+    NSString *description = [self descriptionForRecursiveDescription];
+    
+    if (self.contents != nil) {
+        long long layerBytes = self.bounds.size.width * self.contentsScale * self.bounds.size.height * self.contentsScale * 4;
+        if (bytes) *bytes = layerBytes;
+        
+        NSString *bytesString = [NSByteCountFormatter stringFromByteCount:layerBytes countStyle:NSByteCountFormatterCountStyleMemory];
+        description = [NSString stringWithFormat:@"%@ memory: %@", description, bytesString];
+    }
+    
+    return description;
 }
 
 - (NSString *)displayNodeRecursiveDescription
 {
-  return [self _recursiveDescriptionHelperWithIndent:@""];
+    long long totalBytes = 0;
+    NSString *description = [self _recursiveDescriptionHelperWithIndent:@"" totalBytes:&totalBytes];
+    NSString *totalMemory = [NSByteCountFormatter stringFromByteCount:totalBytes countStyle:NSByteCountFormatterCountStyleMemory];
+    
+    return [description stringByAppendingFormat:@"Total bytes: %@", totalMemory];
 }
 
-- (NSString *)_recursiveDescriptionHelperWithIndent:(NSString *)indent
+- (NSString *)_recursiveDescriptionHelperWithIndent:(NSString *)indent totalBytes:(long long *)totalBytes
 {
-  NSMutableString *subtree = [[[indent stringByAppendingString: self.descriptionForRecursiveDescription] stringByAppendingString:@"\n"] mutableCopy];
-  for (ASDisplayNode *n in self.subnodes) {
-    [subtree appendString:[n _recursiveDescriptionHelperWithIndent:[indent stringByAppendingString:@" | "]]];
-  }
-  return subtree;
+    long long layerBytes = 0;
+    NSString *description = [indent stringByAppendingString:[self descriptionForRecursiveDescriptionWithMemoryUsageAndReturnBytes:&layerBytes]];
+    NSMutableString *subtree = [[description stringByAppendingString:@"\n"] mutableCopy];
+    if (totalBytes) *totalBytes += layerBytes;
+    
+    for (ASDisplayNode *n in self.subnodes) {
+        [subtree appendString:[n _recursiveDescriptionHelperWithIndent:[indent stringByAppendingString:@" | "] totalBytes:totalBytes]];
+    }
+    
+    return subtree;
 }
 
 @end

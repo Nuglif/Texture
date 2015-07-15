@@ -48,6 +48,11 @@
     [self.node __setDelegate:self];    
 }
 
+- (void)configureNode
+{
+// Implement in subclass
+}
+
 - (BOOL)isNodeCreated
 {
     return _node != nil;

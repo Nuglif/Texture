@@ -11,6 +11,7 @@
 #import <AsyncDisplayKit/_ASAsyncTransactionContainer.h>
 #import <AsyncDisplayKit/ASBaseDefines.h>
 #import <AsyncDisplayKit/ASDealloc2MainObject.h>
+#import <AsyncDisplayKit/ASDisplayNodeContainerDelegate.h>
 
 
 typedef UIView *(^ASDisplayNodeViewBlock)();
@@ -32,7 +33,7 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  *
  */
 
-@interface ASDisplayNode : ASDealloc2MainObject
+@interface ASDisplayNode : ASDealloc2MainObject <ASDisplayNodeContainerDelegate>
 
 
 /** @name Initializing a node object */
@@ -114,6 +115,7 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  */
 @property (nonatomic, readonly, retain) CALayer *layer;
 
+@property (nonatomic, weak) id<ASDisplayNodeContainerDelegate> containerDelegate;
 
 /** @name Managing dimensions */
 

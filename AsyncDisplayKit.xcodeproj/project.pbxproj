@@ -299,6 +299,8 @@
 		AC3C4A511A1139C100143C57 /* ASCollectionView.h in Headers */ = {isa = PBXBuildFile; fileRef = AC3C4A4F1A1139C100143C57 /* ASCollectionView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		AC3C4A521A1139C100143C57 /* ASCollectionView.mm in Sources */ = {isa = PBXBuildFile; fileRef = AC3C4A501A1139C100143C57 /* ASCollectionView.mm */; };
 		AC3C4A541A113EEC00143C57 /* ASCollectionViewProtocols.h in Headers */ = {isa = PBXBuildFile; fileRef = AC3C4A531A113EEC00143C57 /* ASCollectionViewProtocols.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CD50133F1B56B234007EE297 /* ASDisplayNodeContainerDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD50133E1B56B234007EE297 /* ASDisplayNodeContainerDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CD5013401B56B2CE007EE297 /* ASDisplayNodeContainerDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD50133E1B56B234007EE297 /* ASDisplayNodeContainerDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CD590EC71B31CBDA00395B55 /* ASDisplayNodeController.h in Headers */ = {isa = PBXBuildFile; fileRef = CD590EC41B31CBDA00395B55 /* ASDisplayNodeController.h */; };
 		CD590EC81B31CBDA00395B55 /* ASDisplayNodeController.m in Sources */ = {isa = PBXBuildFile; fileRef = CD590EC51B31CBDA00395B55 /* ASDisplayNodeController.m */; };
 		CD590EC91B31CBDA00395B55 /* ASDisplayNodeDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD590EC61B31CBDA00395B55 /* ASDisplayNodeDelegate.h */; };
@@ -491,6 +493,7 @@
 		AC3C4A4F1A1139C100143C57 /* ASCollectionView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASCollectionView.h; sourceTree = "<group>"; };
 		AC3C4A501A1139C100143C57 /* ASCollectionView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ASCollectionView.mm; sourceTree = "<group>"; };
 		AC3C4A531A113EEC00143C57 /* ASCollectionViewProtocols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASCollectionViewProtocols.h; sourceTree = "<group>"; };
+		CD50133E1B56B234007EE297 /* ASDisplayNodeContainerDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASDisplayNodeContainerDelegate.h; sourceTree = "<group>"; };
 		CD590EC41B31CBDA00395B55 /* ASDisplayNodeController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASDisplayNodeController.h; sourceTree = "<group>"; };
 		CD590EC51B31CBDA00395B55 /* ASDisplayNodeController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASDisplayNodeController.m; sourceTree = "<group>"; };
 		CD590EC61B31CBDA00395B55 /* ASDisplayNodeDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASDisplayNodeDelegate.h; sourceTree = "<group>"; };
@@ -630,6 +633,7 @@
 				0516FA3F1A1563D200B4EBED /* ASMultiplexImageNode.mm */,
 				055B9FA61A1C154B00035D6D /* ASNetworkImageNode.h */,
 				055B9FA71A1C154B00035D6D /* ASNetworkImageNode.mm */,
+				CD50133E1B56B234007EE297 /* ASDisplayNodeContainerDelegate.h */,
 				D785F6601A74327E00291744 /* ASScrollNode.h */,
 				D785F6611A74327E00291744 /* ASScrollNode.m */,
 				055F1A3219ABD3E3004DAFF1 /* ASTableView.h */,
@@ -898,6 +902,7 @@
 				058D0A69195D05EC00B7D73C /* _ASAsyncTransaction.m in Headers */,
 				058D0A6A195D05EC00B7D73C /* _ASAsyncTransactionContainer+Private.h in Headers */,
 				058D0A6B195D05EC00B7D73C /* _ASAsyncTransactionContainer.h in Headers */,
+				CD50133F1B56B234007EE297 /* ASDisplayNodeContainerDelegate.h in Headers */,
 				058D0A6C195D05EC00B7D73C /* _ASAsyncTransactionContainer.m in Headers */,
 				6BDC61F61979037800E50D21 /* AsyncDisplayKit.h in Headers */,
 				058D0A6D195D05EC00B7D73C /* _ASAsyncTransactionGroup.h in Headers */,
@@ -1001,6 +1006,7 @@
 				2C5B67351B3A7C4C005926A7 /* ASBaseDefines.h in Headers */,
 				2C5B67361B3A7C4C005926A7 /* ASDisplayNodeExtraIvars.h in Headers */,
 				2C5B67371B3A7C4C005926A7 /* ASLog.h in Headers */,
+				CD5013401B56B2CE007EE297 /* ASDisplayNodeContainerDelegate.h in Headers */,
 				2C5B66F71B3A7B5D005926A7 /* ASBatchFetching.h in Headers */,
 				2C5B66FE1B3A7B82005926A7 /* _AS-objc-internal.h in Headers */,
 				2C5B66FF1B3A7B82005926A7 /* _ASCoreAnimationExtras.h in Headers */,
@@ -1661,6 +1667,7 @@
 				2C5B66B21B3A796F005926A7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -22,7 +22,7 @@
 
 #if ASDISPLAYNODE_DELAY_DISPLAY
 static long __ASDisplayLayerMaxConcurrentDisplayCount = 1;
-#define ASDN_DELAY_FOR_DISPLAY() usleep( (long)(0.1 * USEC_PER_SEC) )
+#define ASDN_DELAY_FOR_DISPLAY() usleep( (long)(0.2 * USEC_PER_SEC) )
 #else
 // Basing this off of CPU core count would make sense, but first some experimentation should be done to understand
 // if having more ready-to-run work keeps the CPU clock up (or other interesting scheduler effects).
