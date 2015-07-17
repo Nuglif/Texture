@@ -713,7 +713,6 @@ void ASPerformBlockWithoutAnimation(BOOL withoutAnimation, void (^block)()) {
   ASDisplayNodeAssertMainThread();
   LOG(@"UITableView insertSections:%@", indexSet);
 
-
   if (!self.asyncDataSource) {
     return; // if the asyncDataSource has become invalid while we are processing, ignore this request to avoid crashes
   }
