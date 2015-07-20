@@ -12,6 +12,7 @@
 @protocol ASDisplayNodeContainerDelegate <NSObject>
 
 @required
-- (void)nodeHierarchyDidDisplay:(ASDisplayNode *)node;
+- (void)nodeContainerWillDisplaySubnode:(ASDisplayNode *)node;
+- (void)nodeContainerDidDisplaySubnode:(ASDisplayNode *)node;
 
 @end

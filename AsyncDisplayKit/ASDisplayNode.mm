@@ -120,7 +120,7 @@ void ASDisplayNodePerformBlockOnMainThread(void (^block)())
 
   _flags.isInHierarchy = NO;
   _flags.displaysAsynchronously = YES;
-  
+    
   // As an optimization, it may be worth a caching system that performs these checks once per class in +initialize (see above).
   _flags.implementsDrawRect = ([[self class] respondsToSelector:@selector(drawRect:withParameters:isCancelled:isRasterizing:)] ? 1 : 0);
   _flags.implementsImageDisplay = ([[self class] respondsToSelector:@selector(displayWithParameters:isCancelled:)] ? 1 : 0);
@@ -809,6 +809,7 @@ static bool disableNotificationsForMovingBetweenParents(ASDisplayNode *from, ASD
   }
 
   [subnode __setSupernode:self];
+  [self _didAddSubnode:subnode];
 }
 
 /*
@@ -868,6 +869,7 @@ static bool disableNotificationsForMovingBetweenParents(ASDisplayNode *from, ASD
   }
 
   [subnode __setSupernode:self];
+  [self _didAddSubnode:subnode];
 }
 
 - (void)replaceSubnode:(ASDisplayNode *)oldSubnode withSubnode:(ASDisplayNode *)replacementSubnode
@@ -1099,6 +1101,11 @@ static NSInteger incrementIfFound(NSInteger i) {
       }
     });
   }
+}
+
+- (void)_didAddSubnode:(ASDisplayNode *)subnode
+{
+    subnode.containerDelegate = self.containerDelegate;
 }
 
 - (BOOL)__visibilityNotificationsDisabled
@@ -1461,11 +1468,21 @@ static NSInteger incrementIfFound(NSInteger i) {
 - (void)subnodeDisplayWillStart:(ASDisplayNode *)subnode
 {
   [self _pendingNodeWillDisplay:subnode];
+    
+    if ((!subnode.displaySuspended && !self.displaySuspended) && ![subnode __rasterizedContainerNode] && [subnode _implementsDisplay]) {
+        if (self.containerDelegate) {
+            [self.containerDelegate nodeContainerWillDisplaySubnode:subnode];
+        }
+    }
 }
 
 - (void)subnodeDisplayDidFinish:(ASDisplayNode *)subnode
 {
   [self _pendingNodeDidDisplay:subnode];
+    
+  if (self.containerDelegate && (!subnode.displaySuspended && !self.displaySuspended)) {
+      [self.containerDelegate nodeContainerDidDisplaySubnode:subnode];
+  }
 }
 
 - (void)setNeedsDisplayAtScale:(CGFloat)contentsScale
@@ -1827,7 +1844,7 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
   creationTypeString = [NSString stringWithFormat:@"cr8:%.2lfms dl:%.2lfms ap:%.2lfms ad:%.2lfms",  1000 * _debugTimeToCreateView, 1000 * _debugTimeForDidLoad, 1000 * _debugTimeToApplyPendingState, 1000 * _debugTimeToAddSubnodeViews];
 #endif
 
-  return [NSString stringWithFormat:@"<%@ alpha:%.2f isLayerBacked:%d isDisplaySuspended:%d %@>", self.description, self.alpha, self.isLayerBacked, self.displaySuspended, creationTypeString];
+  return [NSString stringWithFormat:@"<%@ alpha:%.2f isLayerBacked:%d isDisplaySuspended:%d shouldRasterizeDescendants:%d %@>", self.description, self.alpha, self.isLayerBacked, self.displaySuspended, self.shouldRasterizeDescendants, creationTypeString];
 }
 
 - (NSString *)descriptionForRecursiveDescriptionWithMemoryUsageAndReturnBytes:(long long *)bytes {

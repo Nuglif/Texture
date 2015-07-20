@@ -13,7 +13,6 @@
 #import <AsyncDisplayKit/ASDealloc2MainObject.h>
 #import <AsyncDisplayKit/ASDisplayNodeContainerDelegate.h>
 
-
 typedef UIView *(^ASDisplayNodeViewBlock)();
 typedef CALayer *(^ASDisplayNodeLayerBlock)();
 
@@ -33,7 +32,7 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  *
  */
 
-@interface ASDisplayNode : ASDealloc2MainObject <ASDisplayNodeContainerDelegate>
+@interface ASDisplayNode : ASDealloc2MainObject
 
 
 /** @name Initializing a node object */
