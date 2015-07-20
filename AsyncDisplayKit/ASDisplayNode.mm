@@ -1663,6 +1663,15 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
   }
 }
 
+- (void)recursivelySetDisplaysAsynchronously:(BOOL)flag
+{
+    self.displaysAsynchronously = flag;
+    
+    for (ASDisplayNode *subnode in self.subnodes) {
+        [subnode recursivelySetDisplaysAsynchronously:flag];
+    }
+}
+
 - (BOOL)displaySuspended
 {
   ASDisplayNodeAssertThreadAffinity(self);

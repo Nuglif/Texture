@@ -319,6 +319,8 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  */
 - (void)recursivelySetDisplaySuspended:(BOOL)flag;
 
+- (void)recursivelySetDisplaysAsynchronously:(BOOL)flag;
+
 /**
  * @abstract Calls -clearContents on the receiver and its subnode hierarchy.
  *
