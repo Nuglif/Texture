@@ -94,7 +94,7 @@
 - (void)reloadData;
 
 /**
- *  begins a batch of insert, delete reload and move operations. This method must be called from the main thread.
+ *  begins a batch of insert, delete reload and move operations. Batches are asynchronous an thread safe.
  */
 - (void)beginUpdates;
 
@@ -102,7 +102,7 @@
  *  Concludes a series of method calls that insert, delete, select, or reload rows and sections of the table view.
  *  You call this method to bracket a series of method calls that begins with beginUpdates and that consists of operations
  *  to insert, delete, select, and reload rows and sections of the table view. When you call endUpdates, ASTableView begins animating
- *  the operations simultaneously. This method is must be called from the main thread. It's important to remeber that the ASTableView will
+ *  the operations simultaneously. This method is asynchronous and thread safe. It's important to remeber that the ASTableView will
  *  be processing the updates asynchronously after this call is completed.
  *
  *  @param animated   NO to disable all animations.
@@ -116,7 +116,7 @@
  *  Concludes a series of method calls that insert, delete, select, or reload rows and sections of the table view.
  *  You call this method to bracket a series of method calls that begins with beginUpdates and that consists of operations 
  *  to insert, delete, select, and reload rows and sections of the table view. When you call endUpdates, ASTableView begins animating
- *  the operations simultaneously. This method is must be called from the main thread. It's important to remeber that the ASTableView will
+ *  the operations simultaneously. This method is asynchronous and thread safe. It's important to remeber that the ASTableView will
  *  be processing the updates asynchronously after this call and are not guaranteed to be reflected in the ASTableView until
  *  the completion block is executed.
  *
@@ -241,7 +241,7 @@
 
 /**
  * YES to automatically adjust the contentOffset when cells are inserted or deleted "before"
- * visible cells, maintaining the users' visible scroll position. Currently this feature tracks insertions, moves and deletions of
+ * visible cells, maintaining the users' visible scroll position.
  * cells, but section edits are ignored.
  *
  * default is NO.
