@@ -426,7 +426,7 @@ void ASPerformBlockWithoutAnimation(BOOL withoutAnimation, void (^block)()) {
   CGFloat adjustment = 0;
   NSIndexPath *top = _contentOffsetAdjustmentTopVisibleRow ?: self.indexPathsForVisibleRows.firstObject;
 
-  for (int index=0; index<indexPaths.count; index++) {
+  for (int index = 0; index < indexPaths.count; index++) {
     NSIndexPath *indexPath = indexPaths[index];
     if ([indexPath compare:top] <= 0) { // if this row is before or equal to the topmost visible row, make adjustments...
       ASCellNode *cellNode = nodes[index];
@@ -439,7 +439,7 @@ void ASPerformBlockWithoutAnimation(BOOL withoutAnimation, void (^block)()) {
 
   if (_contentOffsetAdjustmentTopVisibleRow) { // true of we are in a begin/end update block (see beginAdjustingContentOffset)
     _contentOffsetAdjustmentTopVisibleRow = top;
-     _contentOffsetAdjustment += adjustment;
+    _contentOffsetAdjustment += adjustment;
   } else if (adjustment != 0) {
     self.contentOffset = CGPointMake(0, self.contentOffset.y+adjustment);
   }
