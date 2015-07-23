@@ -82,8 +82,8 @@
     
     ASDisplayNode *controllerSuperNode = superNode ?: self.node;
     
-    if(!controllerSuperNode.isLayerBacked && (controllerSuperNode.isLayerBacked != nodeController.node.isLayerBacked)) {
-        nodeController.node.layerBacked = NO;
+    if(controllerSuperNode.layerBacked && !nodeController.node.layerBacked) {
+        controllerSuperNode.layerBacked = NO;
     }
     
     CGSize calculatedSize = [self calculateSizeForNode:nodeController.node thatFits:controllerSuperNode.calculatedSize];

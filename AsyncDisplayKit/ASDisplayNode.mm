@@ -809,7 +809,6 @@ static bool disableNotificationsForMovingBetweenParents(ASDisplayNode *from, ASD
   }
 
   [subnode __setSupernode:self];
-  [self _didAddSubnode:subnode];
 }
 
 /*
@@ -863,13 +862,12 @@ static bool disableNotificationsForMovingBetweenParents(ASDisplayNode *from, ASD
     }
   }
 
-  ASDisplayNodeAssert(isMovingEquivalentParents == disableNotificationsForMovingBetweenParents(oldParent, self), @"Invariant violated");
+  ASDisplayNodeAssert(isMovingEquivalentParents == disableNotificationsForMovingBetweenParents(oldParent, self), @"Invariant violated");    
   if (isMovingEquivalentParents) {
     [subnode __decrementVisibilityNotificationsDisabled];
   }
 
   [subnode __setSupernode:self];
-  [self _didAddSubnode:subnode];
 }
 
 - (void)replaceSubnode:(ASDisplayNode *)oldSubnode withSubnode:(ASDisplayNode *)replacementSubnode
@@ -1101,11 +1099,6 @@ static NSInteger incrementIfFound(NSInteger i) {
       }
     });
   }
-}
-
-- (void)_didAddSubnode:(ASDisplayNode *)subnode
-{
-    subnode.containerDelegate = self.containerDelegate;
 }
 
 - (BOOL)__visibilityNotificationsDisabled
@@ -1470,8 +1463,8 @@ static NSInteger incrementIfFound(NSInteger i) {
   [self _pendingNodeWillDisplay:subnode];
     
     if ((!subnode.displaySuspended && !self.displaySuspended) && ![subnode __rasterizedContainerNode] && [subnode _implementsDisplay]) {
-        if (self.containerDelegate) {
-            [self.containerDelegate nodeContainerWillDisplaySubnode:subnode];
+        if (subnode.containerDelegate) {
+            [subnode.containerDelegate nodeContainerWillDisplaySubnode:subnode];
         }
     }
 }
@@ -1480,8 +1473,8 @@ static NSInteger incrementIfFound(NSInteger i) {
 {
   [self _pendingNodeDidDisplay:subnode];
     
-  if (self.containerDelegate && (!subnode.displaySuspended && !self.displaySuspended)) {
-      [self.containerDelegate nodeContainerDidDisplaySubnode:subnode];
+  if (subnode.containerDelegate && (!subnode.displaySuspended && !self.displaySuspended)) {
+      [subnode.containerDelegate nodeContainerDidDisplaySubnode:subnode];
   }
 }
 
