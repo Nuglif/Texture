@@ -6,7 +6,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 @class ASDisplayNode;
 @protocol ASDisplayNodeContainerDelegate <NSObject>
@@ -14,5 +14,6 @@
 @required
 - (void)nodeContainerWillDisplaySubnode:(ASDisplayNode *)node;
 - (void)nodeContainerDidDisplaySubnode:(ASDisplayNode *)node;
+- (UIImage *)nodeContainerThumbnail;
 
 @end
