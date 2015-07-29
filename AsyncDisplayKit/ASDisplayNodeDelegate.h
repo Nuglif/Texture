@@ -27,6 +27,4 @@
 - (void)nodeWillLayoutSubnodes;
 - (void)nodeDidLayoutSubnodes;
 
-- (NSObject *)drawParametersForNode:(ASDisplayNode *)node;
-
 @end
