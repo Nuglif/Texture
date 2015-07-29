@@ -10,12 +10,13 @@
 #import "ASDisplayNode.h"
 #import "ASDisplayNodeDelegate.h"
 
-@interface ASDisplayNodeController : ASDealloc2MainObject <ASDisplayNodeDelegate>
+@interface ASDisplayNodeController : ASDealloc2MainObject <ASDisplayNodeDelegate, ASDisplayNodeContainerDelegate>
 
 @property (nonatomic) ASDisplayNode *node;
 
 @property (nonatomic, readonly, weak) ASDisplayNodeController *parentNodeController;
 @property (nonatomic, readonly) NSArray *childNodeControllers;
+@property (nonatomic, weak) id<ASDisplayNodeContainerDelegate> containerDelegate;
 
 - (void)createNode;
 - (void)configureNode;
@@ -30,6 +31,7 @@
 - (void)willMoveToParentNodeController:(ASDisplayNodeController *)parentNodeController;
 - (void)didMoveToParentNodeController:(ASDisplayNodeController *)parentNodeController;
 
+- (void)setNodeDisplaySuspended:(BOOL)displaySuspended;
 - (CGSize)calculateSizeForNode:(ASDisplayNode *)node thatFits:(CGSize)constrainedSize;
 
 @end

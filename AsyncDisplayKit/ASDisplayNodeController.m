@@ -12,6 +12,8 @@
 @interface ASDisplayNodeController ()
 @property (nonatomic) NSMutableArray *childControllers;
 @property (nonatomic) ASDisplayNodeController *parentNodeController;
+@property (nonatomic) NSMutableSet *pendingAsyncNodes;
+@property (nonatomic) BOOL nodeEnteredNodeHierarchy;
 @end
 
 @interface ASDisplayNode (Test)
@@ -24,10 +26,13 @@
 - (instancetype)init
 {
 	self = [super init];
-	if(self) {
+
+    if(self) {
 		self.childControllers = [NSMutableArray array];
+        self.pendingAsyncNodes = [NSMutableSet set];
 	}
-	return self;
+	
+    return self;
 }
 
 - (ASDisplayNode *)node
@@ -78,7 +83,6 @@
     @synchronized(_childControllers) {
         [self.childControllers addObject:nodeController];
     }
-    nodeController.parentNodeController = self;
     
     ASDisplayNode *controllerSuperNode = superNode ?: self.node;
     
@@ -91,6 +95,8 @@
     
     [controllerSuperNode addSubnode:nodeController.node];
     [nodeController didMoveToParentNodeController:self];
+    
+    [self recursivelyUpdateContainerDelegate:nodeController.node];
 }
 
 - (void)removeFromParentNodeController
@@ -114,7 +120,18 @@
 
 - (void)didMoveToParentNodeController:(ASDisplayNodeController *)parentNodeController
 {
-    // Implement in subclass
+    self.parentNodeController = parentNodeController;
+    self.containerDelegate = parentNodeController;
+}
+
+- (void)setNodeDisplaySuspended:(BOOL)displaySuspended
+{
+    [self.node recursivelySetDisplaySuspended:displaySuspended];
+    
+    if (displaySuspended) {
+        self.nodeEnteredNodeHierarchy = NO;
+        [self.pendingAsyncNodes removeAllObjects];
+    }
 }
 
 #pragma mark - ASDisplayNodeDelegate
@@ -126,6 +143,63 @@
 - (CGSize)calculateSizeForNode:(ASDisplayNode *)node thatFits:(CGSize)constrainedSize
 {
   return CGSizeZero;
+}
+
+#pragma mark - ASDisplayNodeContainerDelegate
+- (void)nodeContainerWillDisplaySubnode:(ASDisplayNode *)node
+{
+    if (!self.nodeEnteredNodeHierarchy) {
+        if (self.pendingAsyncNodes.count == 0 && self.containerDelegate) {
+            [self.containerDelegate nodeContainerWillDisplaySubnode:_node];
+        }
+        
+        @synchronized(self.pendingAsyncNodes) {
+            [self.pendingAsyncNodes addObject:node];
+        }
+    }
+}
+
+- (void)nodeContainerDidDisplaySubnode:(ASDisplayNode *)node
+{
+    if (!self.nodeEnteredNodeHierarchy) {
+        @synchronized(self.pendingAsyncNodes) {
+            [self.pendingAsyncNodes removeObject:node];
+        }
+        
+        if (self.pendingAsyncDisplayNodesHaveFinished) {
+            self.nodeEnteredNodeHierarchy = YES;
+            
+            if (self.containerDelegate) {
+                [self.containerDelegate nodeContainerDidDisplaySubnode:_node];
+            }
+        }
+    }
+}
+
+- (UIImage *)nodeContainerThumbnail
+{
+    if (self.containerDelegate) {
+        return [self.containerDelegate nodeContainerThumbnail];
+    }
+    
+    return nil;
+}
+
+#pragma mark - Private methods
+- (void)recursivelyUpdateContainerDelegate:(ASDisplayNode *)node
+{
+    if (!node.displaySuspended) {
+        node.containerDelegate = self;
+        
+        for (ASDisplayNode *subnode in node.subnodes) {
+            [self recursivelyUpdateContainerDelegate:subnode];
+        }
+    }
+}
+
+- (BOOL)pendingAsyncDisplayNodesHaveFinished
+{
+    return self.pendingAsyncNodes.count == 0;
 }
 
 @end
