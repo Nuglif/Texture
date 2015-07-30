@@ -14,6 +14,6 @@
 @required
 - (void)nodeContainerWillDisplaySubnode:(ASDisplayNode *)node;
 - (void)nodeContainerDidDisplaySubnode:(ASDisplayNode *)node;
-- (UIImage *)nodeContainerThumbnail;
+- (UIImage *)nodeContainerThumbnailForNode:(ASDisplayNode *)node contentsRect:(CGRect *)contentsRect;
 
 @end

@@ -176,10 +176,10 @@
     }
 }
 
-- (UIImage *)nodeContainerThumbnail
+- (UIImage *)nodeContainerThumbnailForNode:(ASDisplayNode *)node contentsRect:(CGRect *)contentsRect
 {
     if (self.containerDelegate) {
-        return [self.containerDelegate nodeContainerThumbnail];
+        return [self.containerDelegate nodeContainerThumbnailForNode:node contentsRect:contentsRect];
     }
     
     return nil;
