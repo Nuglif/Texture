@@ -50,6 +50,7 @@
 		self.node = [[ASDisplayNode alloc] init];
 	}
     
+    self.node.containerDelegate = self;
     [self.node __setDelegate:self];    
 }
 

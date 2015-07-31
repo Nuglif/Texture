@@ -345,6 +345,8 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  */
 - (void)recursivelyClearFetchedData;
 
+- (void)recursivelyClearFetchedThumbnail;
+
 /**
  * @abstract Calls -fetchData on the receiver and its subnode hierarchy.
  *
@@ -353,6 +355,8 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  * @see fetchData and clearFetchedData
  */
 - (void)recursivelyFetchData;
+
+- (void)recursivelyFetchThumbnail;
 
 /**
  * @abstract Toggle displaying a placeholder over the node that covers content until the node and all subnodes are

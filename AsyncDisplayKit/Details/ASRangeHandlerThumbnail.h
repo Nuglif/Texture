@@ -8,9 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM(NSInteger, ASLayoutRangeType) {
-  ASLayoutRangeTypeRender,
-  ASLayoutRangeTypePreload,
-  ASLayoutRangeTypeThumbnail,
-  ASLayoutRangeTypeCount
-};
+#import <AsyncDisplayKit/ASRangeHandler.h>
+
+@interface ASRangeHandlerThumbnail : NSObject <ASRangeHandler>
+
+@end

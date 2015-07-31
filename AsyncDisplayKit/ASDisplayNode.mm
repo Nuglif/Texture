@@ -1418,6 +1418,32 @@ static NSInteger incrementIfFound(NSInteger i) {
   [self clearFetchedData];
 }
 
+- (void)fetchThumbnail
+{
+    // subclass override
+}
+
+- (void)recursivelyFetchThumbnail
+{
+    for (ASDisplayNode *subnode in self.subnodes) {
+        [subnode recursivelyFetchThumbnail];
+    }
+    [self fetchThumbnail];
+}
+
+- (void)clearFetchedThumbnail
+{
+    // subclass override
+}
+
+- (void)recursivelyClearFetchedThumbnail
+{
+    for (ASDisplayNode *subnode in self.subnodes) {
+        [subnode recursivelyClearFetchedThumbnail];
+    }
+    [self clearFetchedThumbnail];
+}
+
 - (void)layout
 {
   ASDisplayNodeAssertMainThread();
@@ -1473,8 +1499,10 @@ static NSInteger incrementIfFound(NSInteger i) {
 {
   [self _pendingNodeDidDisplay:subnode];
     
-  if (subnode.containerDelegate && (!subnode.displaySuspended && !self.displaySuspended)) {
-      [subnode.containerDelegate nodeContainerDidDisplaySubnode:subnode];
+  if ((!subnode.displaySuspended && !self.displaySuspended) && ![subnode __rasterizedContainerNode] && [subnode _implementsDisplay]) {
+      if (subnode.containerDelegate) {
+          [subnode.containerDelegate nodeContainerDidDisplaySubnode:subnode];          
+      }
   }
 }
 
@@ -1846,7 +1874,7 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
   creationTypeString = [NSString stringWithFormat:@"cr8:%.2lfms dl:%.2lfms ap:%.2lfms ad:%.2lfms",  1000 * _debugTimeToCreateView, 1000 * _debugTimeForDidLoad, 1000 * _debugTimeToApplyPendingState, 1000 * _debugTimeToAddSubnodeViews];
 #endif
 
-  return [NSString stringWithFormat:@"<%@ alpha:%.2f isLayerBacked:%d isDisplaySuspended:%d shouldRasterizeDescendants:%d %@>", self.description, self.alpha, self.isLayerBacked, self.displaySuspended, self.shouldRasterizeDescendants, creationTypeString];
+  return [NSString stringWithFormat:@"<%@ alpha:%.2f isLayerBacked:%d isDisplaySuspended:%d shouldRasterizeDescendants:%d containerDelegate:%p %@>", self.description, self.alpha, self.isLayerBacked, self.displaySuspended, self.shouldRasterizeDescendants, self.containerDelegate, creationTypeString];
 }
 
 - (NSString *)descriptionForRecursiveDescriptionWithMemoryUsageAndReturnBytes:(long long *)bytes {

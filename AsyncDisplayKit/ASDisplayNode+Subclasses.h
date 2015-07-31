@@ -194,6 +194,8 @@
  */
 - (void)fetchData ASDISPLAYNODE_REQUIRES_SUPER;
 
+- (void)fetchThumbnail ASDISPLAYNODE_REQUIRES_SUPER;
+
 /**
  * @abstract Indicates that the receiver is about to display its subnodes. This method is not called if there are no
  * subnodes present.
@@ -337,6 +339,7 @@
  */
 - (void)clearFetchedData ASDISPLAYNODE_REQUIRES_SUPER;
 
+- (void)clearFetchedThumbnail ASDISPLAYNODE_REQUIRES_SUPER;
 
 /** @name Placeholders */
 
