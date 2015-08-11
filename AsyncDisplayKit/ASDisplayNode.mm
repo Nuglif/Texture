@@ -1535,10 +1535,10 @@ static NSInteger incrementIfFound(NSInteger i) {
 {
   [self _pendingNodeWillDisplay:subnode];
     
-    if ((!subnode.displaySuspended && !self.displaySuspended) && ![subnode __rasterizedContainerNode] && [subnode _implementsDisplay]) {
-        if (subnode.containerDelegate) {
+   if ((!subnode.displaySuspended && !self.displaySuspended) && ![subnode __rasterizedContainerNode] && [subnode _implementsDisplay]) {
+       if (subnode.containerDelegate) {
             [subnode.containerDelegate nodeContainerWillDisplaySubnode:subnode];
-        }
+       }
     }
 }
 

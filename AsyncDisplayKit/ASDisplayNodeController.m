@@ -12,8 +12,8 @@
 @interface ASDisplayNodeController ()
 @property (nonatomic) NSMutableArray *childControllers;
 @property (nonatomic) ASDisplayNodeController *parentNodeController;
-@property (nonatomic) NSMutableSet *pendingAsyncNodes;
 @property (nonatomic) BOOL nodeEnteredNodeHierarchy;
+@property (nonatomic) NSMutableSet *pendingAsyncNodes;
 @end
 
 @interface ASDisplayNode (Test)

@@ -18,6 +18,8 @@
 @property (nonatomic, readonly) NSArray *childNodeControllers;
 @property (nonatomic, weak) id<ASDisplayNodeContainerDelegate> containerDelegate;
 
+@property (nonatomic, readonly) NSMutableSet *pendingAsyncNodes;
+
 - (void)createNode;
 - (void)configureNode;
 
