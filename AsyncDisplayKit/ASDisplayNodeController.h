@@ -9,6 +9,7 @@
 #import "ASDealloc2MainObject.h"
 #import "ASDisplayNode.h"
 #import "ASDisplayNodeDelegate.h"
+#import "ASDisplayNodePresentation.h"
 
 @interface ASDisplayNodeController : ASDealloc2MainObject <ASDisplayNodeDelegate, ASDisplayNodeContainerDelegate>
 
@@ -17,6 +18,7 @@
 @property (nonatomic, readonly, weak) ASDisplayNodeController *parentNodeController;
 @property (nonatomic, readonly) NSArray *childNodeControllers;
 @property (nonatomic, weak) id<ASDisplayNodeContainerDelegate> containerDelegate;
+@property (nonatomic) id<ASDisplayNodeTransitioningDelegate> nodeTransitioningDelegate;
 
 @property (nonatomic, readonly) NSMutableSet *pendingAsyncNodes;
 

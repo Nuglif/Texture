@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @class ASDisplayNode;
+@class ASDisplayNodeController;
 @protocol ASDisplayNodeContainerDelegate <NSObject>
 
 @required
@@ -16,4 +17,6 @@
 - (void)nodeContainerDidDisplaySubnode:(ASDisplayNode *)node;
 - (UIImage *)nodeContainerThumbnailForNode:(ASDisplayNode *)node contentsRect:(CGRect *)contentsRect;
 
+@optional
+- (void)presentNodeController:(ASDisplayNodeController *)nodeController animated:(BOOL)flag completion:(void(^)())completion;
 @end

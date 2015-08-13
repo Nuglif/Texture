@@ -186,6 +186,16 @@
     return nil;
 }
 
+- (void)presentNodeController:(ASDisplayNodeController *)nodeController animated:(BOOL)flag completion:(void (^)())completion
+{
+    if (self.containerDelegate) {
+        [self.containerDelegate presentNodeController:nodeController animated:flag completion:completion];
+    }
+    else if (completion) {
+        completion();
+    }
+}
+
 #pragma mark - Private methods
 - (void)recursivelyUpdateContainerDelegate:(ASDisplayNode *)node
 {
