@@ -341,8 +341,8 @@
 		B350625D1B0111740018CF92 /* Photos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 051943141A1575670030A7D0 /* Photos.framework */; };
 		B350625E1B0111780018CF92 /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 051943121A1575630030A7D0 /* AssetsLibrary.framework */; };
 		B350625F1B0111800018CF92 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 058D09AF195D04C000B7D73C /* Foundation.framework */; };
-		CD094E4D1B7ACF0400B5521C /* ASTouchInterceptingNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CD094E4B1B7ACF0400B5521C /* ASTouchInterceptingNode.h */; };
-		CD094E4E1B7ACF0400B5521C /* ASTouchInterceptingNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CD094E4B1B7ACF0400B5521C /* ASTouchInterceptingNode.h */; };
+		CD094E4D1B7ACF0400B5521C /* ASTouchInterceptingNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CD094E4B1B7ACF0400B5521C /* ASTouchInterceptingNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CD094E4E1B7ACF0400B5521C /* ASTouchInterceptingNode.h in Headers */ = {isa = PBXBuildFile; fileRef = CD094E4B1B7ACF0400B5521C /* ASTouchInterceptingNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CD094E4F1B7ACF0400B5521C /* ASTouchInterceptingNode.m in Sources */ = {isa = PBXBuildFile; fileRef = CD094E4C1B7ACF0400B5521C /* ASTouchInterceptingNode.m */; };
 		CD094E501B7ACF0400B5521C /* ASTouchInterceptingNode.m in Sources */ = {isa = PBXBuildFile; fileRef = CD094E4C1B7ACF0400B5521C /* ASTouchInterceptingNode.m */; };
 		CD624FAC1B6BE7EC00234329 /* ASDisplayNodeContainerDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = CD624FA81B6BE7EC00234329 /* ASDisplayNodeContainerDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -357,8 +357,8 @@
 		CD624FB71B6BE86300234329 /* ASRangeHandlerThumbnail.h in Headers */ = {isa = PBXBuildFile; fileRef = CD624FB41B6BE86300234329 /* ASRangeHandlerThumbnail.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CD624FB81B6BE86300234329 /* ASRangeHandlerThumbnail.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD624FB51B6BE86300234329 /* ASRangeHandlerThumbnail.mm */; };
 		CD624FB91B6BE86300234329 /* ASRangeHandlerThumbnail.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD624FB51B6BE86300234329 /* ASRangeHandlerThumbnail.mm */; };
-		CD65C2FA1B7A784000AD6B2B /* ASDisplayNodePresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = CD65C2F91B7A784000AD6B2B /* ASDisplayNodePresentation.h */; };
-		CD65C2FB1B7A784000AD6B2B /* ASDisplayNodePresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = CD65C2F91B7A784000AD6B2B /* ASDisplayNodePresentation.h */; };
+		CD65C2FA1B7A784000AD6B2B /* ASDisplayNodePresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = CD65C2F91B7A784000AD6B2B /* ASDisplayNodePresentation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CD65C2FB1B7A784000AD6B2B /* ASDisplayNodePresentation.h in Headers */ = {isa = PBXBuildFile; fileRef = CD65C2F91B7A784000AD6B2B /* ASDisplayNodePresentation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D785F6621A74327E00291744 /* ASScrollNode.h in Headers */ = {isa = PBXBuildFile; fileRef = D785F6601A74327E00291744 /* ASScrollNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D785F6631A74327E00291744 /* ASScrollNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D785F6611A74327E00291744 /* ASScrollNode.m */; };
 		DB7121BCD50849C498C886FB /* libPods-AsyncDisplayKitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EFA731F0396842FF8AB635EE /* libPods-AsyncDisplayKitTests.a */; };

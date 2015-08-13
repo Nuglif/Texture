@@ -9,6 +9,8 @@
 #import <AsyncDisplayKit/ASDisplayNode.h>
 #import <AsyncDisplayKit/ASDisplayNodeExtras.h>
 #import <AsyncDisplayKit/ASDisplayNodeContainerDelegate.h>
+#import <AsyncDisplayKit/ASDisplayNodePresentation.h>
+#import <AsyncDisplayKit/ASTouchInterceptingNode.h>
 
 #import <AsyncDisplayKit/ASControlNode.h>
 #import <AsyncDisplayKit/ASImageNode.h>
