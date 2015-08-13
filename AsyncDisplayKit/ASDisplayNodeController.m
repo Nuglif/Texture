@@ -162,7 +162,7 @@
 
 - (void)nodeContainerDidDisplaySubnode:(ASDisplayNode *)node
 {
-    if (!self.nodeEnteredNodeHierarchy) {
+    if (!self.nodeEnteredNodeHierarchy && [self.pendingAsyncNodes containsObject:node]) {
         @synchronized(self.pendingAsyncNodes) {
             [self.pendingAsyncNodes removeObject:node];
         }

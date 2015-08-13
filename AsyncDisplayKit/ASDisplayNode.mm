@@ -1546,8 +1546,10 @@ static NSInteger incrementIfFound(NSInteger i) {
 {
   [self _pendingNodeDidDisplay:subnode];
     
-  if (subnode.containerDelegate) {
-    [subnode.containerDelegate nodeContainerDidDisplaySubnode:subnode];
+  if ((!subnode.displaySuspended && !self.displaySuspended) && ![subnode __rasterizedContainerNode] && [subnode _implementsDisplay]) {
+      if (subnode.containerDelegate) {
+          [subnode.containerDelegate nodeContainerDidDisplaySubnode:subnode];          
+      }
   }
 }
 
