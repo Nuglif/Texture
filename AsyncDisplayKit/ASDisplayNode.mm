@@ -1533,24 +1533,20 @@ static NSInteger incrementIfFound(NSInteger i) {
 
 - (void)subnodeDisplayWillStart:(ASDisplayNode *)subnode
 {
-  [self _pendingNodeWillDisplay:subnode];
-    
-   if ((!subnode.displaySuspended && !self.displaySuspended) && ![subnode __rasterizedContainerNode] && [subnode _implementsDisplay]) {
-       if (subnode.containerDelegate) {
-            [subnode.containerDelegate nodeContainerWillDisplaySubnode:subnode];
-       }
+    if (!_pendingDisplayNodes && self.containerDelegate) {
+        [self.containerDelegate nodeContainerWillDisplayNode:self];
     }
+    
+    [self _pendingNodeWillDisplay:subnode];
 }
 
 - (void)subnodeDisplayDidFinish:(ASDisplayNode *)subnode
 {
   [self _pendingNodeDidDisplay:subnode];
     
-  if ((!subnode.displaySuspended && !self.displaySuspended) && ![subnode __rasterizedContainerNode] && [subnode _implementsDisplay]) {
-      if (subnode.containerDelegate) {
-          [subnode.containerDelegate nodeContainerDidDisplaySubnode:subnode];          
-      }
-  }
+    if ([self _pendingDisplayNodesHaveFinished] && self.containerDelegate) {
+        [self.containerDelegate nodeContainerDidDisplayNode:self];
+    }
 }
 
 - (void)setNeedsDisplayAtScale:(CGFloat)contentsScale

@@ -122,7 +122,6 @@
 - (void)didMoveToParentNodeController:(ASDisplayNodeController *)parentNodeController
 {
     self.parentNodeController = parentNodeController;
-    self.containerDelegate = parentNodeController;
 }
 
 - (void)setNodeDisplaySuspended:(BOOL)displaySuspended
@@ -147,11 +146,11 @@
 }
 
 #pragma mark - ASDisplayNodeContainerDelegate
-- (void)nodeContainerWillDisplaySubnode:(ASDisplayNode *)node
+- (void)nodeContainerWillDisplayNode:(ASDisplayNode *)node
 {
     if (!self.nodeEnteredNodeHierarchy) {
         if (self.pendingAsyncNodes.count == 0 && self.containerDelegate) {
-            [self.containerDelegate nodeContainerWillDisplaySubnode:_node];
+            [self.containerDelegate nodeContainerWillDisplayNode:node];
         }
         
         @synchronized(self.pendingAsyncNodes) {
@@ -160,7 +159,7 @@
     }
 }
 
-- (void)nodeContainerDidDisplaySubnode:(ASDisplayNode *)node
+- (void)nodeContainerDidDisplayNode:(ASDisplayNode *)node
 {
     if (!self.nodeEnteredNodeHierarchy && [self.pendingAsyncNodes containsObject:node]) {
         @synchronized(self.pendingAsyncNodes) {
@@ -171,7 +170,7 @@
             self.nodeEnteredNodeHierarchy = YES;
             
             if (self.containerDelegate) {
-                [self.containerDelegate nodeContainerDidDisplaySubnode:_node];
+                [self.containerDelegate nodeContainerDidDisplayNode:node];
             }
         }
     }

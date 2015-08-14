@@ -13,8 +13,8 @@
 @protocol ASDisplayNodeContainerDelegate <NSObject>
 
 @required
-- (void)nodeContainerWillDisplaySubnode:(ASDisplayNode *)node;
-- (void)nodeContainerDidDisplaySubnode:(ASDisplayNode *)node;
+- (void)nodeContainerWillDisplayNode:(ASDisplayNode *)node;
+- (void)nodeContainerDidDisplayNode:(ASDisplayNode *)node;
 - (UIImage *)nodeContainerThumbnailForNode:(ASDisplayNode *)node contentsRect:(CGRect *)contentsRect;
 
 @optional
