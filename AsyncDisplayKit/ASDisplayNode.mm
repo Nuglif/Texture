@@ -1549,6 +1549,25 @@ static NSInteger incrementIfFound(NSInteger i) {
     }
 }
 
+- (BOOL)recursivelyImplementsDisplay
+{
+    if ([self _implementsDisplay]) {
+        return YES;
+    }
+    
+    BOOL implementsDisplay = NO;
+    for (ASDisplayNode *subnode in self.subnodes) {
+        implementsDisplay = [subnode recursivelyImplementsDisplay];
+        
+        if (implementsDisplay) {
+            return YES;
+        }
+    }
+    
+    return implementsDisplay;
+}
+
+
 - (void)setNeedsDisplayAtScale:(CGFloat)contentsScale
 {
   if (contentsScale != self.contentsScaleForDisplay) {

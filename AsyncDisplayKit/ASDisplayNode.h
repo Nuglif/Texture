@@ -389,6 +389,8 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
 
 - (void)recursivelyFetchThumbnail;
 
+- (BOOL)recursivelyImplementsDisplay;
+
 /**
  * @abstract Toggle displaying a placeholder over the node that covers content until the node and all subnodes are
  * displayed.

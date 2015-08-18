@@ -18,5 +18,5 @@
 - (UIImage *)nodeContainerThumbnailForNode:(ASDisplayNode *)node contentsRect:(CGRect *)contentsRect;
 
 @optional
-- (void)presentNodeController:(ASDisplayNodeController *)nodeController animated:(BOOL)flag completion:(void(^)())completion;
+- (void)presentNodeController:(ASDisplayNodeController *)nodeController animated:(BOOL)flag completion:(void(^)(BOOL presented))completion;
 @end
