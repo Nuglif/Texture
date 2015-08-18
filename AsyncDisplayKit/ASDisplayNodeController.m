@@ -185,13 +185,13 @@
     return nil;
 }
 
-- (void)presentNodeController:(ASDisplayNodeController *)nodeController animated:(BOOL)flag completion:(void (^)())completion
+- (void)presentNodeController:(ASDisplayNodeController *)nodeController animated:(BOOL)flag completion:(void (^)(BOOL presented))completion
 {
     if (self.containerDelegate) {
         [self.containerDelegate presentNodeController:nodeController animated:flag completion:completion];
     }
     else if (completion) {
-        completion();
+        completion(NO);
     }
 }
 
