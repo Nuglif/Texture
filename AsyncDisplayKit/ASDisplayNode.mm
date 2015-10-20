@@ -1533,7 +1533,7 @@ static NSInteger incrementIfFound(NSInteger i) {
 
 - (void)subnodeDisplayWillStart:(ASDisplayNode *)subnode
 {
-    if (!_pendingDisplayNodes && self.containerDelegate) {
+    if ([_pendingDisplayNodes count] == 0 && self.containerDelegate) {
         [self.containerDelegate nodeContainerWillDisplayNode:self];
     }
     
