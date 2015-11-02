@@ -787,8 +787,8 @@ static ASDisplayNodeMethodOverrides GetASDisplayNodeMethodOverrides(Class c)
 
 - (void)layoutDidFinish
 {
-    if (_delegate && [_delegate respondsToSelector:@selector(nodeDidLayoutSubnodes)]) {
-        [_delegate nodeDidLayoutSubnodes];
+    if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeDidLayoutSubnodes)]) {
+        [_nodeDelegate nodeDidLayoutSubnodes];
     }
 }
 
@@ -1279,8 +1279,8 @@ static NSInteger incrementIfFound(NSInteger i) {
   if (!_supernode)
     return;
 
-  if (_delegate && [_delegate respondsToSelector:@selector(nodeWillEndDisplay)]) {
-     [_delegate nodeWillEndDisplay];
+  if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeWillEndDisplay)]) {
+     [_nodeDelegate nodeWillEndDisplay];
   }
     
   // Do this before removing the view from the hierarchy, as the node will clear its supernode pointer when its view is removed from the hierarchy.
@@ -1293,8 +1293,8 @@ static NSInteger incrementIfFound(NSInteger i) {
       [_view removeFromSuperview];
     }
       
-    if (_delegate && [_delegate respondsToSelector:@selector(nodeDidEndDisplay)]) {
-      [_delegate nodeDidEndDisplay];
+    if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeDidEndDisplay)]) {
+      [_nodeDelegate nodeDidEndDisplay];
     }
       
   } else {
@@ -1305,8 +1305,8 @@ static NSInteger incrementIfFound(NSInteger i) {
         [_view removeFromSuperview];
       }
         
-      if (_delegate && [_delegate respondsToSelector:@selector(nodeDidEndDisplay)]) {
-        [_delegate nodeDidEndDisplay];
+      if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeDidEndDisplay)]) {
+        [_nodeDelegate nodeDidEndDisplay];
       }
     });
   }
@@ -1454,7 +1454,7 @@ static NSInteger incrementIfFound(NSInteger i) {
 - (void)__setDelegate:(id<ASDisplayNodeDelegate>)delegate
 {
     ASDN::MutexLocker l(_propertyLock);
-    _delegate = delegate;
+    _nodeDelegate = delegate;
 }
 
 // Track that a node will be displayed as part of the current node hierarchy.
@@ -1617,7 +1617,7 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
 - (CGSize)calculateSizeThatFits:(CGSize)constrainedSize
 {
   ASDisplayNodeAssertThreadAffinity(self);
-  if (_delegate && [_delegate respondsToSelector:@selector(calculateSizeForNode:thatFits:)]) {
+  if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(calculateSizeForNode:thatFits:)]) {
   return _preferredFrameSize;
   }
   else {
@@ -1688,8 +1688,8 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
 - (void)didLoad
 {
   ASDisplayNodeAssertMainThread();
-  if(_delegate && [_delegate respondsToSelector:@selector(nodeDidLoad)]) {
-    [_delegate nodeDidLoad];
+  if(_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeDidLoad)]) {
+    [_nodeDelegate nodeDidLoad];
   }
 }
 
@@ -1793,8 +1793,8 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
                                                                                  subnodeLayout.size.height)];
   }
 
-  if (_delegate && [_delegate respondsToSelector:@selector(nodeWillLayoutSubnodes)]) {
-    [_delegate nodeWillLayoutSubnodes];
+  if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeWillLayoutSubnodes)]) {
+    [_nodeDelegate nodeWillLayoutSubnodes];
   }
 }
 
@@ -1814,8 +1814,8 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
     [self.layer addSublayer:_placeholderLayer];
   }
     
-  if (_delegate && [_delegate respondsToSelector:@selector(nodeWillDisplay)]) {
-    [_delegate nodeWillDisplay];
+  if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeWillDisplay)]) {
+    [_nodeDelegate nodeWillDisplay];
   }
 }
 
@@ -1825,8 +1825,8 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
 
   [_supernode subnodeDisplayDidFinish:self];
     
-  if (_delegate && [_delegate respondsToSelector:@selector(nodeDidDisplay)]) {
-    [_delegate nodeDidDisplay];
+  if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeDidDisplay)]) {
+    [_nodeDelegate nodeDidDisplay];
   }
 }
 

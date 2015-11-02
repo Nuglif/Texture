@@ -254,7 +254,7 @@
 - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
 {
   // We forward responder-chain actions to our node if we can't handle them ourselves. See -targetForAction:withSender:.
-  return ([super canPerformAction:action withSender:sender] || [_node canPerformAction:action withSender:sender]);
+  return ([super canPerformAction:action withSender:sender] || [_node respondsToSelector:action]);
 }
 
 - (id)forwardingTargetForSelector:(SEL)aSelector

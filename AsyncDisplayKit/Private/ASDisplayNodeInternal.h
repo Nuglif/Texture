@@ -47,7 +47,7 @@ typedef NS_OPTIONS(NSUInteger, ASDisplayNodeMethodOverrides) {
   ASDN::RecursiveMutex _propertyLock;
 
   ASDisplayNode * __weak _supernode;
-  id<ASDisplayNodeDelegate> __weak _delegate;
+  id<ASDisplayNodeDelegate> __weak _nodeDelegate;
     
   ASSentinel *_displaySentinel;
   ASSentinel *_replaceAsyncSentinel;

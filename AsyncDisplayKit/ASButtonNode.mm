@@ -17,10 +17,12 @@
   NSAttributedString *_normalAttributedTitle;
   NSAttributedString *_highlightedAttributedTitle;
   NSAttributedString *_disabledAttributedTitle;
+  NSAttributedString *_selectedAttributedTitle;
   
   UIImage *_normalImage;
   UIImage *_highlightedImage;
   UIImage *_disabledImage;
+  UIImage *_selectedImage;
 }
 
 @end
@@ -62,6 +64,8 @@
     newImage = _disabledImage;
   } else if (self.highlighted && _highlightedImage) {
     newImage = _highlightedImage;
+  } else if (self.selected && _selectedImage) {
+    newImage = _selectedImage;
   } else {
     newImage = _normalImage;
   }
@@ -80,6 +84,8 @@
     newTitle = _disabledAttributedTitle;
   } else if (self.highlighted && _highlightedAttributedTitle) {
     newTitle = _highlightedAttributedTitle;
+  } else if (self.selected && _selectedAttributedTitle) {
+    newTitle = _selectedAttributedTitle;
   } else {
     newTitle = _normalAttributedTitle;
   }
@@ -132,6 +138,9 @@
     case ASButtonStateHighlighted:
       return _highlightedAttributedTitle;
       
+    case ASButtonStateSelected:
+      return _selectedAttributedTitle;
+      
     case ASButtonStateDisabled:
       return _disabledAttributedTitle;
   }
@@ -147,6 +156,10 @@
       
     case ASButtonStateHighlighted:
       _highlightedAttributedTitle = [title copy];
+      break;
+      
+    case ASButtonStateSelected:
+      _selectedAttributedTitle = [title copy];
       break;
       
     case ASButtonStateDisabled:
@@ -166,6 +179,9 @@
     case ASButtonStateHighlighted:
       return _highlightedImage;
       
+    case ASButtonStateSelected:
+      return _selectedImage;
+      
     case ASButtonStateDisabled:
       return _disabledImage;
   }
@@ -183,10 +199,23 @@
       _highlightedImage = image;
       break;
       
+    case ASButtonStateSelected:
+      _selectedImage = image;
+      break;
+      
     case ASButtonStateDisabled:
       _disabledImage = image;
       break;
   }
+  [self updateImage];
+}
+
+- (void)setImagesForStates:(NSDictionary <NSNumber *, UIImage *> *)stateImages
+{
+  _normalImage = [stateImages objectForKey:@(ASButtonStateNormal)];
+  _highlightedImage = [stateImages objectForKey:@(ASButtonStateHighlighted)];
+  _selectedImage = [stateImages objectForKey:@(ASButtonStateSelected)];
+  _disabledImage = [stateImages objectForKey:@(ASButtonStateDisabled)];
   [self updateImage];
 }
 
@@ -217,6 +246,14 @@
   [super layout];
   self.imageNode.hidden = self.imageNode.image == nil;
   self.titleNode.hidden = self.titleNode.attributedString.length > 0 == NO;
+}
+
+- (void)setSelected:(BOOL)selected
+{
+  _selected = selected;
+  
+  [self updateImage];
+  [self updateTitle];
 }
 
 @end

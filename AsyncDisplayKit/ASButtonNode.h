@@ -11,6 +11,7 @@
 typedef enum : NSUInteger {
   ASButtonStateNormal,
   ASButtonStateHighlighted,
+  ASButtonStateSelected,
   ASButtonStateDisabled,
 } ASButtonState;
 
@@ -24,6 +25,8 @@ typedef enum : NSUInteger {
  */
 @property (nonatomic, assign) CGFloat contentSpacing;
 
+@property (nonatomic) BOOL selected;
+
 /**
  Whether button should be laid out vertically (image on top of text) or horizontally (image to the left of text).
  ASButton node does not yet support RTL but it should be fairly easy to implement.
@@ -36,5 +39,5 @@ typedef enum : NSUInteger {
 
 - (UIImage *)imageForState:(ASButtonState)state;
 - (void)setImage:(UIImage *)image forState:(ASButtonState)state;
-
+- (void)setImagesForStates:(NSDictionary <NSNumber *, UIImage *> *)stateImages;
 @end
