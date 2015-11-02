@@ -24,6 +24,15 @@ BOOL ASSubclassOverridesSelector(Class superclass, Class subclass, SEL selector)
   return (superclassIMP != subclassIMP);
 }
 
+BOOL ASSubclassOverridesClassSelector(Class superclass, Class subclass, SEL selector)
+{
+  Method superclassMethod = class_getClassMethod(superclass, selector);
+  Method subclassMethod = class_getClassMethod(subclass, selector);
+  IMP superclassIMP = superclassMethod ? method_getImplementation(superclassMethod) : NULL;
+  IMP subclassIMP = subclassMethod ? method_getImplementation(subclassMethod) : NULL;
+  return (superclassIMP != subclassIMP);
+}
+
 static void ASDispatchOnceOnMainThread(dispatch_once_t *predicate, dispatch_block_t block)
 {
   if ([NSThread isMainThread]) {
@@ -34,6 +43,17 @@ static void ASDispatchOnceOnMainThread(dispatch_once_t *predicate, dispatch_bloc
         dispatch_once(predicate, block);
       });
     }
+  }
+}
+
+void ASPerformBlockOnMainThread(void (^block)())
+{
+  if ([NSThread isMainThread]) {
+    block();
+  } else {
+    dispatch_async(dispatch_get_main_queue(), ^{
+      block();
+    });
   }
 }
 
@@ -61,3 +81,12 @@ CGFloat ASRoundPixelValue(CGFloat f)
 {
   return roundf(f * ASScreenScale()) / ASScreenScale();
 }
+
+@implementation NSIndexPath (ASInverseComparison)
+
+- (NSComparisonResult)asdk_inverseCompare:(NSIndexPath *)otherIndexPath
+{
+  return [otherIndexPath compare:self];
+}
+
+@end

@@ -1,11 +1,11 @@
 Pod::Spec.new do |spec|
   spec.name         = 'AsyncDisplayKit'
-  spec.version      = '1.2.3'
+  spec.version      = '1.9'
   spec.license      =  { :type => 'BSD' }
   spec.homepage     = 'http://asyncdisplaykit.org'
   spec.authors      = { 'Scott Goodson' => 'scottgoodson@gmail.com', 'Ryan Nystrom' => 'rnystrom@fb.com' }
   spec.summary      = 'Smooth asynchronous user interfaces for iOS apps.'
-  spec.source       = { :git => 'https://github.com/facebook/AsyncDisplayKit.git', :tag => '1.2.3' }
+  spec.source       = { :git => 'https://github.com/facebook/AsyncDisplayKit.git', :tag => '1.9' }
 
   spec.documentation_url = 'http://asyncdisplaykit.org/appledoc/'
 
@@ -41,7 +41,7 @@ Pod::Spec.new do |spec|
 
   spec.social_media_url = 'https://twitter.com/fbOpenSource'
   spec.library = 'c++'
-  spec.xcconfig = {
+  spec.pod_target_xcconfig = {
        'CLANG_CXX_LANGUAGE_STANDARD' => 'c++11',
        'CLANG_CXX_LIBRARY' => 'libc++'
   }

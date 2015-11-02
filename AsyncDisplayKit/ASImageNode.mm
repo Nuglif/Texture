@@ -18,6 +18,7 @@
 #import "ASImageNode+CGExtras.h"
 
 #import "ASInternalHelpers.h"
+#import "ASEqualityHelpers.h"
 
 @interface _ASImageNodeDrawParameters : NSObject
 
@@ -96,13 +97,13 @@
   return self;
 }
 
-- (instancetype)initWithLayerBlock:(ASDisplayNodeLayerBlock)viewBlock
+- (instancetype)initWithLayerBlock:(ASDisplayNodeLayerBlock)viewBlock didLoadBlock:(ASDisplayNodeDidLoadBlock)didLoadBlock
 {
   ASDisplayNodeAssertNotSupported();
   return nil;
 }
 
-- (instancetype)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock
+- (instancetype)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock didLoadBlock:(ASDisplayNodeDidLoadBlock)didLoadBlock
 {
   ASDisplayNodeAssertNotSupported();
   return nil;
@@ -111,7 +112,10 @@
 - (CGSize)calculateSizeThatFits:(CGSize)constrainedSize
 {
   ASDN::MutexLocker l(_imageLock);
-  if (_image)
+  // if a preferredFrameSize is set, call the superclass to return that instead of using the image size.
+  if (CGSizeEqualToSize(self.preferredFrameSize, CGSizeZero) == NO)
+    return [super calculateSizeThatFits:constrainedSize];
+  else if (_image)
     return _image.size;
   else
     return CGSizeZero;
@@ -120,11 +124,11 @@
 - (void)setImage:(UIImage *)image
 {
   ASDN::MutexLocker l(_imageLock);
-  if (_image != image) {
+  if (!ASObjectIsEqual(_image, image)) {
     _image = image;
 
     ASDN::MutexUnlocker u(_imageLock);
-    ASDisplayNodePerformBlockOnMainThread(^{
+    ASPerformBlockOnMainThread(^{
       [self invalidateCalculatedLayout];
       [self setNeedsDisplay];
     });
@@ -224,6 +228,12 @@
   // Use contentsScale of 1.0 and do the contentsScale handling in boundsSizeInPixels so ASCroppedImageBackingSizeAndDrawRectInBounds
   // will do its rounding on pixel instead of point boundaries
   UIGraphicsBeginImageContextWithOptions(backingSize, parameters.opaque, 1.0);
+  
+  // if view is opaque, fill the context with background color
+  if (parameters.opaque && parameters.backgroundColor) {
+    [parameters.backgroundColor setFill];
+    UIRectFill({ .size = backingSize });
+  }
 
   [image drawInRect:imageDrawRect];
 
@@ -296,7 +306,7 @@
   // If we have an image to display, display it, respecting our recrop flag.
   if (self.image)
   {
-    ASDisplayNodePerformBlockOnMainThread(^{
+    ASPerformBlockOnMainThread(^{
       if (recropImmediately)
         [self displayImmediately];
       else
@@ -324,7 +334,7 @@
   BOOL isCroppingImage = ((boundsSize.width < imageSize.width) || (boundsSize.height < imageSize.height));
 
   // Re-display if we need to.
-  ASDisplayNodePerformBlockOnMainThread(^{
+  ASPerformBlockOnMainThread(^{
     if (self.nodeLoaded && self.contentMode == UIViewContentModeScaleAspectFill && isCroppingImage)
       [self setNeedsDisplay];
   });

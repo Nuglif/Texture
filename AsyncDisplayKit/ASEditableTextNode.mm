@@ -78,7 +78,8 @@
   _textKitComponents.layoutManager.delegate = self;
   _wordKerner = [[ASTextNodeWordKerner alloc] init];
   _returnKeyType = UIReturnKeyDefault;
-
+  _textContainerInset = UIEdgeInsetsZero;
+  
   // Create the placeholder scaffolding.
   _placeholderTextKitComponents = [ASTextKitComponents componentsWithAttributedSeedString:nil textContainerSize:CGSizeZero];
   _placeholderTextKitComponents.layoutManager.delegate = self;
@@ -86,13 +87,13 @@
   return self;
 }
 
-- (instancetype)initWithLayerBlock:(ASDisplayNodeLayerBlock)viewBlock
+- (instancetype)initWithLayerBlock:(ASDisplayNodeLayerBlock)viewBlock didLoadBlock:(ASDisplayNodeDidLoadBlock)didLoadBlock
 {
   ASDisplayNodeAssertNotSupported();
   return nil;
 }
 
-- (instancetype)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock
+- (instancetype)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock didLoadBlock:(ASDisplayNodeDidLoadBlock)didLoadBlock
 {
   ASDisplayNodeAssertNotSupported();
   return nil;
@@ -122,7 +123,7 @@
       textView.backgroundColor = nil;
       textView.opaque = NO;
     }
-    textView.textContainerInset = UIEdgeInsetsZero;
+    textView.textContainerInset = self.textContainerInset;
     textView.clipsToBounds = NO; // We don't want selection handles cut off.
   };
 
@@ -143,12 +144,14 @@
   _textKitComponents.textView.accessibilityHint = _placeholderTextKitComponents.textStorage.string;
   configureTextView(_textKitComponents.textView);
   [self.view addSubview:_textKitComponents.textView];
+  [self _updateDisplayingPlaceholder];
 }
 
 - (CGSize)calculateSizeThatFits:(CGSize)constrainedSize
 {
   ASTextKitComponents *displayedComponents = [self isDisplayingPlaceholder] ? _placeholderTextKitComponents : _textKitComponents;
   CGSize textSize = [displayedComponents sizeForConstrainedWidth:constrainedSize.width];
+  textSize = ceilSizeValue(textSize);
   return CGSizeMake(constrainedSize.width, fminf(textSize.height, constrainedSize.height));
 }
 
@@ -173,6 +176,15 @@
   _placeholderTextKitComponents.textView.backgroundColor = backgroundColor;
 }
 
+- (void)setTextContainerInset:(UIEdgeInsets)textContainerInset
+{
+  ASDN::MutexLocker l(_textKitLock);
+
+  _textContainerInset = textContainerInset;
+  _textKitComponents.textView.textContainerInset = textContainerInset;
+  _placeholderTextKitComponents.textView.textContainerInset = textContainerInset;
+}
+
 - (void)setOpaque:(BOOL)opaque
 {
   [super setOpaque:opaque];
@@ -185,6 +197,12 @@
     _textKitComponents.textView.opaque = opaque;
   }
   _placeholderTextKitComponents.textView.opaque = opaque;
+}
+
+- (void)setLayerBacked:(BOOL)layerBacked
+{
+  ASDisplayNodeAssert(!layerBacked, @"Cannot set layerBacked to YES on ASEditableTextNode – instances must be view-backed in order to ensure touch events can be passed to the internal UITextView during editing.");
+  [super setLayerBacked:layerBacked];
 }
 
 #pragma mark - Configuration
@@ -209,7 +227,7 @@
 
 - (void)setTypingAttributes:(NSDictionary *)typingAttributes
 {
-  if (_typingAttributes == typingAttributes)
+  if (ASObjectIsEqual(typingAttributes, _typingAttributes))
     return;
 
   _typingAttributes = [typingAttributes copy];

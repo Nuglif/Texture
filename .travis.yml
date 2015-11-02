@@ -2,14 +2,18 @@ language: objective-c
 before_install:
   - brew update
   - brew reinstall xctool
-  - gem install cocoapods -v 0.37.2
+  - gem install cocoapods -v 0.38.2
+  - gem install slather
   - xcrun simctl list
 install: echo "<3"
 env:
   - MODE=tests
   - MODE=examples
   - MODE=life-without-cocoapods
+  - MODE=framework
 script: ./build.sh $MODE
+after_success:
+  - slather
 
 # whitelist
 branches:

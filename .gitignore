@@ -1,4 +1,4 @@
-DS_Store
+.DS_Store
 
 *.pbxuser
 *.perspective
@@ -24,3 +24,7 @@ docs/.sass-cache
 *.swp
 
 *.lock
+
+*.gcov
+*.gcno
+*.gcda

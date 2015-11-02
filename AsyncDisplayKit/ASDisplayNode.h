@@ -12,18 +12,26 @@
 #import <AsyncDisplayKit/ASBaseDefines.h>
 #import <AsyncDisplayKit/ASDealloc2MainObject.h>
 #import <AsyncDisplayKit/ASDimension.h>
+#import <AsyncDisplayKit/ASAsciiArtBoxCreator.h>
 #import <AsyncDisplayKit/ASDisplayNodeContainerDelegate.h>
-
 #import <AsyncDisplayKit/ASLayoutable.h>
+
+@class ASDisplayNode;
 
 /**
  * UIView creation block. Used to create the backing view of a new display node.
  */
 typedef UIView *(^ASDisplayNodeViewBlock)();
+
 /**
  * CALayer creation block. Used to create the backing layer of a new display node.
  */
 typedef CALayer *(^ASDisplayNodeLayerBlock)();
+
+/**
+ * ASDisplayNode loaded callback block. This block is called BEFORE the -didLoad method and is always called on the main thread.
+ */
+typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
 
 /**
  * An `ASDisplayNode` is an abstraction over `UIView` and `CALayer` that allows you to perform calculations about a view
@@ -67,18 +75,44 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
 - (id)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock;
 
 /**
+ * @abstract Alternative initializer with a block to create the backing view.
+ *
+ * @param viewBlock The block that will be used to create the backing view.
+ * @param didLoadBlock The block that will be called after the view created by the viewBlock is loaded
+ *
+ * @return An ASDisplayNode instance that loads its view with the given block that is guaranteed to run on the main
+ * queue. The view will render synchronously and -layout and touch handling methods on the node will not be called.
+ */
+- (id)initWithViewBlock:(ASDisplayNodeViewBlock)viewBlock didLoadBlock:(ASDisplayNodeDidLoadBlock)didLoadBlock;
+
+/**
  * @abstract Alternative initializer with a block to create the backing layer.
  *
- * @param viewBlock The block that will be used to create the backing layer.
+ * @param layerBlock The block that will be used to create the backing layer.
  *
  * @return An ASDisplayNode instance that loads its layer with the given block that is guaranteed to run on the main
  * queue. The layer will render synchronously and -layout and touch handling methods on the node will not be called.
  */
-- (id)initWithLayerBlock:(ASDisplayNodeLayerBlock)viewBlock;
+- (id)initWithLayerBlock:(ASDisplayNodeLayerBlock)layerBlock;
+
+/**
+ * @abstract Alternative initializer with a block to create the backing layer.
+ *
+ * @param layerBlock The block that will be used to create the backing layer.
+ * @param didLoadBlock The block that will be called after the layer created by the layerBlock is loaded
+ *
+ * @return An ASDisplayNode instance that loads its layer with the given block that is guaranteed to run on the main
+ * queue. The layer will render synchronously and -layout and touch handling methods on the node will not be called.
+ */
+- (id)initWithLayerBlock:(ASDisplayNodeLayerBlock)layerBlock didLoadBlock:(ASDisplayNodeDidLoadBlock)didLoadBlock;
 
 
 /** @name Properties */
 
+/**
+ * @abstract The name of this node, which will be displayed in `description`. The default value is nil.
+ */
+@property (atomic, copy) NSString *name;
 
 /** 
  * @abstract Returns whether the node is synchronous.
@@ -186,6 +220,16 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  * @return The minimum and maximum constrained sizes used by calculateLayoutThatFits:.
  */
 @property (nonatomic, readonly, assign) ASSizeRange constrainedSizeForCalculatedLayout;
+
+/**
+ * @abstract Provides a default intrinsic content size for calculateSizeThatFits:. This is useful when laying out
+ * a node that either has no intrinsic content size or should be laid out at a different size than its intrinsic content
+ * size. For example, this property could be set on an ASImageNode to display at a size different from the underlying
+ * image size.
+ *
+ * @return The preferred frame size of this node
+ */
+@property (atomic, assign, readwrite) CGSize preferredFrameSize;
 
 /** @name Managing the nodes hierarchy */
 
@@ -496,7 +540,7 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  * Convenience methods for debugging.
  */
 
-@interface ASDisplayNode (Debugging)
+@interface ASDisplayNode (Debugging) <ASLayoutableAsciiArtProtocol>
 
 /**
  * @abstract Return a description of the node hierarchy.
@@ -516,14 +560,24 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  * Using them will not cause the actual view/layer to be created, and will be applied when it is created (when the view 
  * or layer property is accessed).
  *
- * After the view is created, the properties pass through to the view directly as if called on the main thread.
+ * - NOTE: After the view or layer is created, the properties pass through to the view or layer directly and must be called on the main thread.
  *
  * See UIView and CALayer for documentation on these common properties.
  */
 @interface ASDisplayNode (UIViewBridge)
 
-- (void)setNeedsDisplay;    // Marks the view as needing display. Convenience for use whether view is created or not, or from a background thread.
-- (void)setNeedsLayout;     // Marks the view as needing layout.  Convenience for use whether view is created or not, or from a background thread.
+/**
+ * Marks the view as needing display. Convenience for use whether the view / layer is loaded or not. Safe to call from a background thread.
+ */
+- (void)setNeedsDisplay;
+
+/**
+ * Marks the node as needing layout. Convenience for use whether the view / layer is loaded or not. Safe to call from a background thread.
+ * 
+ * If this node was measured, calling this method triggers an internal relayout: the calculated layout is invalidated,
+ * and the supernode is notified or (if this node is the root one) a full measurement pass is executed using the old constrained size.
+ */
+- (void)setNeedsLayout;
 
 @property (atomic, retain)           id contents;                           // default=nil
 @property (atomic, assign)           BOOL clipsToBounds;                    // default==NO
@@ -546,7 +600,6 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
 @property (atomic, assign)           CGFloat contentsScale;                 // default=1.0f. See @contentsScaleForDisplay for more info
 @property (atomic, assign)           CATransform3D transform;               // default=CATransform3DIdentity
 @property (atomic, assign)           CATransform3D subnodeTransform;        // default=CATransform3DIdentity
-@property (atomic, copy)             NSString *name;                        // default=nil. Use this to tag your layers in the server-recurse-description / pca or for your own purposes
 
 /**
  * @abstract The node view's background color.
@@ -610,6 +663,7 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  * @param node The node to be added.
  */
 - (void)addSubnode:(ASDisplayNode *)node;
+- (NSString *)name;
 @end
 
 /** CALayer(AsyncDisplayKit) defines convenience method for adding sub-ASDisplayNode to a CALayer. */
@@ -620,6 +674,7 @@ typedef CALayer *(^ASDisplayNodeLayerBlock)();
  * @param node The node to be added.
  */
 - (void)addSubnode:(ASDisplayNode *)node;
+- (NSString *)name;
 @end
 
 @interface ASDisplayNode (Deprecated)

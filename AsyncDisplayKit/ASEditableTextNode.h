@@ -11,7 +11,10 @@
 
 @protocol ASEditableTextNodeDelegate;
 
-/// @abstract ASEditableTextNode implements a node that supports text editing.
+/**
+ @abstract Implements a node that supports text editing.
+ @discussion Does not support layer backing.
+ */
 @interface ASEditableTextNode : ASDisplayNode
 
 // @abstract The text node's delegate, which must conform to the <ASEditableTextNodeDelegate> protocol.
@@ -55,6 +58,11 @@
 #pragma mark - Managing The Keyboard
 //! @abstract The text input mode used by the receiver's keyboard, if it is visible. This value is undefined if the receiver is not the first responder.
 @property (nonatomic, readonly) UITextInputMode *textInputMode;
+
+/*
+ @abstract The textContainerInset of both the placeholder and typed textView. This value defaults to UIEdgeInsetsZero.
+ */
+@property (nonatomic, readwrite) UIEdgeInsets textContainerInset;
 
 /*
  @abstract The returnKeyType of the keyboard. This value defaults to UIReturnKeyDefault.
