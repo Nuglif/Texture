@@ -91,8 +91,8 @@
         controllerSuperNode.layerBacked = NO;
     }
     
-    CGSize calculatedSize = [self calculateSizeForNode:nodeController.node thatFits:controllerSuperNode.calculatedSize];
-    [nodeController.node measure:calculatedSize];
+    nodeController.node.preferredFrameSize = nodeController.preferredFrameSize;
+    [nodeController.node measure:nodeController.preferredFrameSize];
     
     [controllerSuperNode addSubnode:nodeController.node];
     [nodeController didMoveToParentNodeController:self];
@@ -140,7 +140,7 @@
     return [self isNodeCreated] && self.node.isNodeLoaded;
 }
 
-- (CGSize)calculateSizeForNode:(ASDisplayNode *)node thatFits:(CGSize)constrainedSize
+- (CGSize)preferredFrameSize
 {
   return CGSizeZero;
 }

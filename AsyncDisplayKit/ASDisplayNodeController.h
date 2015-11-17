@@ -36,6 +36,6 @@
 - (void)didMoveToParentNodeController:(ASDisplayNodeController *)parentNodeController;
 
 - (void)setNodeDisplaySuspended:(BOOL)displaySuspended;
-- (CGSize)calculateSizeForNode:(ASDisplayNode *)node thatFits:(CGSize)constrainedSize;
+- (CGSize)preferredFrameSize;
 
 @end

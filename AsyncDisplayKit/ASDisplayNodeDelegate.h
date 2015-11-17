@@ -16,7 +16,6 @@
 @required
 - (void)nodeDidLoad;
 - (BOOL)isNodeLoaded;
-- (CGSize)calculateSizeForNode:(ASDisplayNode *)node thatFits:(CGSize)constrainedSize;
 
 @optional
 - (void)nodeWillDisplay;

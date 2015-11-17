@@ -1617,12 +1617,7 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
 - (CGSize)calculateSizeThatFits:(CGSize)constrainedSize
 {
   ASDisplayNodeAssertThreadAffinity(self);
-  if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(calculateSizeForNode:thatFits:)]) {
   return _preferredFrameSize;
-  }
-  else {
-    return CGSizeZero;
-  }
 }
 
 - (ASLayoutSpec *)layoutSpecThatFits:(ASSizeRange)constrainedSize
