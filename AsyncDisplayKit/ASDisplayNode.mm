@@ -1795,6 +1795,8 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
 
 - (void)displayWillStart
 {
+  [self _containerWillDisplayNode];
+  
   // in case current node takes longer to display than it's subnodes, treat it as a dependent node
   [self _pendingNodeWillDisplay:self];
 
@@ -1818,6 +1820,8 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
 {
   [self _pendingNodeDidDisplay:self];
 
+  [self _containerDidDisplayNode];
+  
   [_supernode subnodeDisplayDidFinish:self];
     
   if (_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeDidDisplay)]) {
@@ -1827,9 +1831,7 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
 
 - (void)subnodeDisplayWillStart:(ASDisplayNode *)subnode
 {
-    if ([_pendingDisplayNodes count] == 0 && self.containerDelegate) {
-        [self.containerDelegate nodeContainerWillDisplayNode:self];
-    }
+  [self _containerWillDisplayNode];
     
   [self _pendingNodeWillDisplay:subnode];
 }
@@ -1838,9 +1840,21 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
 {
   [self _pendingNodeDidDisplay:subnode];
     
-    if ([self _pendingDisplayNodesHaveFinished] && self.containerDelegate) {
-        [self.containerDelegate nodeContainerDidDisplayNode:self];
-    }
+  [self _containerDidDisplayNode];
+}
+
+- (void)_containerWillDisplayNode
+{
+  if ([_pendingDisplayNodes count] == 0 && self.containerDelegate && !self.shouldRasterizeDescendants) {
+    [self.containerDelegate nodeContainerWillDisplayNode:self];
+  }
+}
+
+- (void)_containerDidDisplayNode
+{
+  if ([self _pendingDisplayNodesHaveFinished] && self.containerDelegate) {
+    [self.containerDelegate nodeContainerDidDisplayNode:self];
+  }
 }
 
 - (BOOL)recursivelyImplementsDisplay
