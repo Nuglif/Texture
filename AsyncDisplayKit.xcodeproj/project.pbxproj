@@ -418,6 +418,7 @@
 		CD0DD8E31BE798C200B6E156 /* ASRangeHandlerThumbnail.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD0DD8E11BE798C200B6E156 /* ASRangeHandlerThumbnail.mm */; };
 		CD0DD8E41BE798D100B6E156 /* ASRangeHandlerThumbnail.h in Headers */ = {isa = PBXBuildFile; fileRef = CD0DD8E01BE798C200B6E156 /* ASRangeHandlerThumbnail.h */; };
 		CD0DD8E51BE798D300B6E156 /* ASRangeHandlerThumbnail.mm in Sources */ = {isa = PBXBuildFile; fileRef = CD0DD8E11BE798C200B6E156 /* ASRangeHandlerThumbnail.mm */; };
+		CDA345A11C075793006C16B5 /* ASDisplayNodeController+Subclasses.h in Headers */ = {isa = PBXBuildFile; fileRef = CDA345A01C075793006C16B5 /* ASDisplayNodeController+Subclasses.h */; };
 		D785F6621A74327E00291744 /* ASScrollNode.h in Headers */ = {isa = PBXBuildFile; fileRef = D785F6601A74327E00291744 /* ASScrollNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D785F6631A74327E00291744 /* ASScrollNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D785F6611A74327E00291744 /* ASScrollNode.m */; };
 		DB7121BCD50849C498C886FB /* libPods-AsyncDisplayKitTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EFA731F0396842FF8AB635EE /* libPods-AsyncDisplayKitTests.a */; };
@@ -694,6 +695,7 @@
 		CD0DD8D21BE795C500B6E156 /* ASTouchInterceptingNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASTouchInterceptingNode.m; sourceTree = "<group>"; };
 		CD0DD8E01BE798C200B6E156 /* ASRangeHandlerThumbnail.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASRangeHandlerThumbnail.h; sourceTree = "<group>"; };
 		CD0DD8E11BE798C200B6E156 /* ASRangeHandlerThumbnail.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ASRangeHandlerThumbnail.mm; sourceTree = "<group>"; };
+		CDA345A01C075793006C16B5 /* ASDisplayNodeController+Subclasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "ASDisplayNodeController+Subclasses.h"; sourceTree = "<group>"; };
 		D3779BCFF841AD3EB56537ED /* Pods-AsyncDisplayKitTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AsyncDisplayKitTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-AsyncDisplayKitTests/Pods-AsyncDisplayKitTests.release.xcconfig"; sourceTree = "<group>"; };
 		D785F6601A74327E00291744 /* ASScrollNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ASScrollNode.h; sourceTree = "<group>"; };
 		D785F6611A74327E00291744 /* ASScrollNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ASScrollNode.m; sourceTree = "<group>"; };
@@ -827,6 +829,7 @@
 				058D09D9195D050800B7D73C /* ASDisplayNode.mm */,
 				058D09DA195D050800B7D73C /* ASDisplayNode+Subclasses.h */,
 				CD0DD8CC1BE795C500B6E156 /* ASDisplayNodeContainerDelegate.h */,
+				CDA345A01C075793006C16B5 /* ASDisplayNodeController+Subclasses.h */,
 				CD0DD8CD1BE795C500B6E156 /* ASDisplayNodeController.h */,
 				CD0DD8CE1BE795C500B6E156 /* ASDisplayNodeController.m */,
 				CD0DD8CF1BE795C500B6E156 /* ASDisplayNodeDelegate.h */,
@@ -1236,6 +1239,7 @@
 				055F1A3419ABD3E3004DAFF1 /* ASTableView.h in Headers */,
 				251B8EF71BBB3D690087C538 /* ASCollectionDataController.h in Headers */,
 				0574D5E219C110940097DC25 /* ASTableViewProtocols.h in Headers */,
+				CDA345A11C075793006C16B5 /* ASDisplayNodeController+Subclasses.h in Headers */,
 				058D0A51195D05CB00B7D73C /* ASTextNode.h in Headers */,
 				058D0A5B195D05DC00B7D73C /* ASTextNodeCoreTextAdditions.h in Headers */,
 				058D0A5D195D05DC00B7D73C /* ASTextNodeRenderer.h in Headers */,

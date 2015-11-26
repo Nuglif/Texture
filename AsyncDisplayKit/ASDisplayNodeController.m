@@ -97,7 +97,7 @@
     [controllerSuperNode addSubnode:nodeController.node];
     [nodeController didMoveToParentNodeController:self];
     
-    [self recursivelyUpdateContainerDelegate:nodeController.node];
+    [nodeController recursivelySetContainerDelegate:self];
 }
 
 - (void)removeFromParentNodeController
@@ -196,15 +196,15 @@
 }
 
 #pragma mark - Private methods
-- (void)recursivelyUpdateContainerDelegate:(ASDisplayNode *)node
+- (void)recursivelySetContainerDelegate:(id<ASDisplayNodeContainerDelegate>)containerDelegate
 {
-    if (!node.displaySuspended) {
-        node.containerDelegate = self;
-        
-        for (ASDisplayNode *subnode in node.subnodes) {
-            [self recursivelyUpdateContainerDelegate:subnode];
-        }
+  if (!self.node.displaySuspended) {
+    self.node.containerDelegate = containerDelegate;
+    
+    for (ASDisplayNodeController *childController in self.childNodeControllers) {
+      [childController recursivelySetContainerDelegate:containerDelegate];
     }
+  }
 }
 
 - (BOOL)pendingAsyncDisplayNodesHaveFinished
