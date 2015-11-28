@@ -26,10 +26,6 @@
   }
   
   _tuningParameters = std::vector<ASRangeTuningParameters>(ASLayoutRangeTypeCount);
-  _tuningParameters[ASLayoutRangeTypeThumbnail] = {
-        .leadingBufferScreenfuls = 3,
-        .trailingBufferScreenfuls = 2
-    };
   _tuningParameters[ASLayoutRangeTypePreload] = {
     .leadingBufferScreenfuls = 3,
     .trailingBufferScreenfuls = 2

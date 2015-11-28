@@ -1745,32 +1745,6 @@ void recursivelyEnsureDisplayForLayer(CALayer *layer)
   [self clearFetchedData];
 }
 
-- (void)fetchThumbnail
-{
-    // subclass override
-}
-
-- (void)recursivelyFetchThumbnail
-{
-    for (ASDisplayNode *subnode in self.subnodes) {
-        [subnode recursivelyFetchThumbnail];
-    }
-    [self fetchThumbnail];
-}
-
-- (void)clearFetchedThumbnail
-{
-    // subclass override
-}
-
-- (void)recursivelyClearFetchedThumbnail
-{
-    for (ASDisplayNode *subnode in self.subnodes) {
-        [subnode recursivelyClearFetchedThumbnail];
-    }
-    [self clearFetchedThumbnail];
-}
-
 - (void)layout
 {
   ASDisplayNodeAssertMainThread();

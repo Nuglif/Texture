@@ -11,6 +11,5 @@
 typedef NS_ENUM(NSInteger, ASLayoutRangeType) {
   ASLayoutRangeTypeRender,
   ASLayoutRangeTypePreload,
-  ASLayoutRangeTypeThumbnail,
   ASLayoutRangeTypeCount
 };

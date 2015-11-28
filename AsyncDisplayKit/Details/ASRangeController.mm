@@ -14,7 +14,6 @@
 #import "ASRangeHandlerRender.h"
 #import "ASRangeHandlerPreload.h"
 #import "ASInternalHelpers.h"
-#import "ASRangeHandlerThumbnail.h"
 
 @interface ASRangeController () {
   BOOL _rangeIsValid;
@@ -39,8 +38,7 @@
 
     _rangeTypeHandlers = @{
                             @(ASLayoutRangeTypeRender): [[ASRangeHandlerRender alloc] init],
-                            @(ASLayoutRangeTypePreload): [[ASRangeHandlerPreload alloc] init],
-                            @(ASLayoutRangeTypeThumbnail): [[ASRangeHandlerThumbnail alloc] init],
+                            @(ASLayoutRangeTypePreload): [[ASRangeHandlerPreload alloc] init]
                             };
   }
 

@@ -420,8 +420,6 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  */
 - (void)recursivelyClearFetchedData;
 
-- (void)recursivelyClearFetchedThumbnail;
-
 /**
  * @abstract Calls -fetchData on the receiver and its subnode hierarchy.
  *
@@ -430,8 +428,6 @@ typedef void (^ASDisplayNodeDidLoadBlock)(ASDisplayNode *node);
  * @see ASDisplayNode(Subclassing):fetchData and clearFetchedData
  */
 - (void)recursivelyFetchData;
-
-- (void)recursivelyFetchThumbnail;
 
 - (BOOL)recursivelyImplementsDisplay;
 
