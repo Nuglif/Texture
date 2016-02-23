@@ -18,7 +18,7 @@
 @property (nonatomic, readonly, weak) ASDisplayNodeController *parentNodeController;
 @property (nonatomic, readonly) NSArray *childNodeControllers;
 @property (nonatomic, weak) id<ASDisplayNodeContainerDelegate> containerDelegate;
-@property (nonatomic) id<ASDisplayNodeTransitioningDelegate> nodeTransitioningDelegate;
+@property (nonatomic, weak) id<ASDisplayNodeTransitioningDelegate> nodeTransitioningDelegate;
 
 @property (nonatomic, readonly) NSMutableSet *pendingAsyncNodes;
 

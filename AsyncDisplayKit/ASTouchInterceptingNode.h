@@ -17,7 +17,7 @@
 
 @interface ASTouchInterceptingNode : ASDisplayNode
 
-@property (nonatomic) id<ASTouchInterceptingNodeDelegate> interceptingDelegate;
+@property (nonatomic, weak) id<ASTouchInterceptingNodeDelegate> interceptingDelegate;
 @property (nonatomic) BOOL enableTouchInterception;
 
 @end
