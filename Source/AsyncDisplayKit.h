@@ -20,6 +20,7 @@
 #import <AsyncDisplayKit/ASDisplayNode+Ancestry.h>
 #import <AsyncDisplayKit/ASDisplayNode+Convenience.h>
 #import <AsyncDisplayKit/ASDisplayNodeExtras.h>
+#import <AsyncDisplayKit/ASDisplayNodeDelegate.h>
 
 #import <AsyncDisplayKit/ASControlNode.h>
 #import <AsyncDisplayKit/ASImageNode.h>

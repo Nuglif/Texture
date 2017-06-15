@@ -25,12 +25,14 @@
 #import <AsyncDisplayKit/ASAsciiArtBoxCreator.h>
 #import <AsyncDisplayKit/ASObjectDescriptionHelpers.h>
 #import <AsyncDisplayKit/ASLayoutElement.h>
+#import <AsyncDisplayKit/ASDisplayNodeContainerDelegate.h> // NodeController
 
 NS_ASSUME_NONNULL_BEGIN
 
 #define ASDisplayNodeLoggingEnabled 0
 
 @class ASDisplayNode;
+@protocol ASDisplayNodeDelegate; // NodeController
 @protocol ASContextTransitioning;
 
 /**
@@ -122,6 +124,14 @@ extern NSInteger const ASDefaultDrawingPriority;
  */
 
 @interface ASDisplayNode : NSObject
+
+/** NodeController **/
+@property (nonatomic, weak) id<ASDisplayNodeContainerDelegate> containerDelegate;
+@property (nonatomic, weak) id<ASDisplayNodeDelegate> nodeDelegate;
+- (void)recursivelySetDisplaysAsynchronously:(BOOL)flag;
+- (BOOL)recursivelyImplementsDisplay;
+- (BOOL)recursivelyPendingDisplayNodesHaveFinished;
+- (void)bringSubnodeToFront:(ASDisplayNode *)node;
 
 /** @name Initializing a node object */
 

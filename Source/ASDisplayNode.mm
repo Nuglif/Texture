@@ -24,6 +24,7 @@
 #import <AsyncDisplayKit/AsyncDisplayKit+Debug.h>
 #import <AsyncDisplayKit/ASLayoutSpec+Subclasses.h>
 #import <AsyncDisplayKit/ASCellNode+Internal.h>
+#import <AsyncDisplayKit/ASDisplayNodeDelegate.h>
 
 #import <objc/runtime.h>
 
@@ -80,6 +81,7 @@ NSInteger const ASDefaultDrawingPriority = ASDefaultTransactionPriority;
 @dynamic layoutElementType;
 
 @synthesize threadSafeBounds = _threadSafeBounds;
+@synthesize nodeDelegate = _nodeDelegate; // NodeController
 
 static BOOL suppressesInvalidCollectionUpdateExceptions = NO;
 static std::atomic_bool storesUnflattenedLayouts = ATOMIC_VAR_INIT(NO);
@@ -637,7 +639,11 @@ static ASDisplayNodeMethodOverrides GetASDisplayNodeMethodOverrides(Class c)
 - (void)didLoad
 {
   ASDisplayNodeAssertMainThread();
-  
+
+  if(_nodeDelegate && [_nodeDelegate respondsToSelector:@selector(nodeDidLoad)]) {
+     [_nodeDelegate nodeDidLoad];
+  }
+
   // Subclass hook
 }
 
@@ -1539,6 +1545,8 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
   [self displayWillStart]; // Subclass override
   ASDisplayNodeAssertMainThread();
 
+  [self _containerWillDisplayNode]; //NodeController
+
   ASDisplayNodeLogEvent(self, @"displayWillStart");
   // in case current node takes longer to display than it's subnodes, treat it as a dependent node
   [self _pendingNodeWillDisplay:self];
@@ -1556,6 +1564,7 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
   
   ASDisplayNodeLogEvent(self, @"displayDidFinish");
   [self _pendingNodeDidDisplay:self];
+  [self _containerDidDisplayNode]; //NodeController
 
   __instanceLock__.lock();
   ASDisplayNode *supernode = _supernode;
@@ -1567,6 +1576,7 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
 - (void)subnodeDisplayWillStart:(ASDisplayNode *)subnode
 {
   // Subclass hook
+  [self _containerWillDisplayNode]; // NodeController
   [self _pendingNodeWillDisplay:subnode];
 }
 
@@ -1574,7 +1584,86 @@ static void _recursivelySetDisplaySuspended(ASDisplayNode *node, CALayer *layer,
 {
   // Subclass hook
   [self _pendingNodeDidDisplay:subnode];
+  [self _containerDidDisplayNode]; // NodeController
 }
+
+/** NodeController **/
+- (void)_containerWillDisplayNode
+{
+  if ([_pendingDisplayNodes count] == 0 && self.containerDelegate && !self.rasterizesSubtree) {
+    [self.containerDelegate nodeContainerWillDisplayNode:self];
+  }
+}
+
+/** NodeController **/
+- (void)_containerDidDisplayNode
+{
+  if (_pendingDisplayNodes.count == 0 && self.containerDelegate) {
+    [self.containerDelegate nodeContainerDidDisplayNode:self];
+  }
+}
+
+/** NodeController **/
+- (void)recursivelySetDisplaysAsynchronously:(BOOL)flag
+{
+  self.displaysAsynchronously = flag;
+
+  for (ASDisplayNode *subnode in self.subnodes) {
+    [subnode recursivelySetDisplaysAsynchronously:flag];
+  }
+}
+
+/** NodeController **/
+- (BOOL)recursivelyPendingDisplayNodesHaveFinished
+{
+  if (_pendingDisplayNodes.count != 0) {
+    return NO;
+  }
+
+  for (ASDisplayNode *subnode in self.subnodes) {
+    if (![subnode recursivelyPendingDisplayNodesHaveFinished]) {
+      return NO;
+    }
+  }
+
+  return YES;
+}
+
+/** NodeController **/
+- (BOOL)recursivelyImplementsDisplay
+{
+  if ([self _implementsDisplay]) {
+    return YES;
+  }
+
+  BOOL implementsDisplay = NO;
+  for (ASDisplayNode *subnode in self.subnodes) {
+    implementsDisplay = [subnode recursivelyImplementsDisplay];
+
+    if (implementsDisplay) {
+      return YES;
+    }
+  }
+
+  return implementsDisplay;
+}
+
+/** NodeController **/
+- (void)bringSubnodeToFront:(ASDisplayNode *)node {
+    ASDisplayNodeAssertThreadAffinity(self);
+    ASDN::MutexLocker l(__instanceLock__);
+
+    [node removeFromSupernode];
+    [self addSubnode:node];
+}
+
+/** NodeController **/
+- (void)setNodeDelegate:(id<ASDisplayNodeDelegate>)delegate
+{
+    ASDN::MutexLocker l(__instanceLock__);
+    _nodeDelegate = delegate;
+}
+
 
 #pragma mark <CALayerDelegate>
 
