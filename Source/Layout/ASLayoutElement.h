@@ -174,7 +174,7 @@ extern NSString * const ASLayoutElementStyleLayoutPositionProperty;
 - (void)style:(__kindof ASLayoutElementStyle *)style propertyDidChange:(NSString *)propertyName;
 @end
 
-@interface ASLayoutElementStyle : NSObject <ASStackLayoutElement, ASAbsoluteLayoutElement, ASLayoutElementExtensibility>
+@interface ASLayoutElementStyle : NSObject <ASStackLayoutElement, ASAbsoluteLayoutElement, ASLayoutElementExtensibility, NSLocking>
 
 /**
  * @abstract Initializes the layoutElement style with a specified delegate
@@ -192,7 +192,7 @@ extern NSString * const ASLayoutElementStyleLayoutPositionProperty;
 #pragma mark - Sizing
 
 /**
- * @abstract The width property specifies the height of the content area of an ASLayoutElement.
+ * @abstract The width property specifies the width of the content area of an ASLayoutElement.
  * The minWidth and maxWidth properties override width.
  * Defaults to ASDimensionAuto
  */

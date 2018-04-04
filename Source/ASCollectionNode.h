@@ -110,6 +110,30 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) BOOL allowsMultipleSelection;
 
 /**
+ * A Boolean value that determines whether bouncing always occurs when vertical scrolling reaches the end of the content.
+ * The default value of this property is NO.
+ */
+@property (nonatomic, assign) BOOL alwaysBounceVertical;
+
+/**
+ * A Boolean value that determines whether bouncing always occurs when horizontal scrolling reaches the end of the content view.
+ * The default value of this property is NO.
+ */
+@property (nonatomic, assign) BOOL alwaysBounceHorizontal;
+
+/**
+ * A Boolean value that controls whether the vertical scroll indicator is visible.
+ * The default value of this property is YES.
+ */
+@property (nonatomic, assign) BOOL showsVerticalScrollIndicator;
+
+/**
+ * A Boolean value that controls whether the horizontal scroll indicator is visible.
+ * The default value of this property is NO.
+ */
+@property (nonatomic, assign) BOOL showsHorizontalScrollIndicator;
+
+/**
  * The layout used to organize the node's items.
  *
  * @discussion Assigning a new layout object to this property causes the new layout to be applied (without animations) to the node’s items.
@@ -284,7 +308,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  *  Calling -waitUntilAllUpdatesAreProcessed is one way to flush any pending update completion blocks.
  */
-- (void)onDidFinishProcessingUpdates:(nullable void (^)(void))didFinishProcessingUpdates;
+- (void)onDidFinishProcessingUpdates:(void (^)(void))didFinishProcessingUpdates;
 
 /**
  *  Blocks execution of the main thread until all section and item updates are committed to the view. This method must be called from the main thread.
@@ -629,6 +653,32 @@ NS_ASSUME_NONNULL_BEGIN
  * @return The supplementary element kinds that exist in the given section, if any.
  */
 - (NSArray<NSString *> *)collectionNode:(ASCollectionNode *)collectionNode supplementaryElementKindsInSection:(NSInteger)section;
+
+/**
+ * Asks the data source if it's possible to move the specified item interactively.
+ *
+ * See @p -[UICollectionViewDataSource collectionView:canMoveItemAtIndexPath:] @c.
+ *
+ * @param collectionNode  The sender.
+ * @param node            The display node for the item that may be moved.
+ *
+ * @return Whether the item represented by @p node may be moved.
+ */
+- (BOOL)collectionNode:(ASCollectionNode *)collectionNode canMoveItemWithNode:(ASCellNode *)node;
+
+/**
+ * Called when the user has interactively moved an item. The data source
+ * should update its internal data store to reflect the move. Note that you
+ * should not call [collectionNode moveItemAtIndexPath:toIndexPath:] – the
+ * collection node's internal state will be updated automatically.
+ *
+ * * See @p -[UICollectionViewDataSource collectionView:moveItemAtIndexPath:toIndexPath:] @c.
+ *
+ * @param collectionNode        The sender.
+ * @param sourceIndexPath       The original item index path.
+ * @param destinationIndexPath  The new item index path.
+ */
+- (void)collectionNode:(ASCollectionNode *)collectionNode moveItemAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath;
 
 /**
  * Similar to -collectionView:cellForItemAtIndexPath:.

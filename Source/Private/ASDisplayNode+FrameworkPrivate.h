@@ -99,6 +99,29 @@ __unused static NSString * _Nonnull NSStringFromASHierarchyState(ASHierarchyStat
 	return [NSString stringWithFormat:@"{ %@ }", [states componentsJoinedByString:@" | "]];
 }
 
+#define HIERARCHY_STATE_DELTA(Name) ({ \
+  if ((oldState & ASHierarchyState##Name) != (newState & ASHierarchyState##Name)) { \
+    [changes appendFormat:@"%c%s ", (newState & ASHierarchyState##Name ? '+' : '-'), #Name]; \
+  } \
+})
+
+__unused static NSString * _Nonnull NSStringFromASHierarchyStateChange(ASHierarchyState oldState, ASHierarchyState newState)
+{
+  if (oldState == newState) {
+    return @"{ }";
+  }
+
+  NSMutableString *changes = [NSMutableString stringWithString:@"{ "];
+  HIERARCHY_STATE_DELTA(Rasterized);
+  HIERARCHY_STATE_DELTA(RangeManaged);
+  HIERARCHY_STATE_DELTA(TransitioningSupernodes);
+  HIERARCHY_STATE_DELTA(LayoutPending);
+  [changes appendString:@"}"];
+  return changes;
+}
+
+#undef HIERARCHY_STATE_DELTA
+
 @interface ASDisplayNode () <ASDescriptionProvider, ASDebugDescriptionProvider>
 {
 @protected
@@ -117,6 +140,10 @@ __unused static NSString * _Nonnull NSStringFromASHierarchyState(ASHierarchyStat
 
 // delegate to inform of ASInterfaceState changes (used by ASNodeController)
 @property (nonatomic, weak) id<ASInterfaceStateDelegate> interfaceStateDelegate;
+
+// The -pendingInterfaceState holds the value that will be applied to -interfaceState by the
+// ASCATransactionQueue. If already applied, it matches -interfaceState. Thread-safe access.
+@property (nonatomic, readonly) ASInterfaceState pendingInterfaceState;
 
 // These methods are recursive, and either union or remove the provided interfaceState to all sub-elements.
 - (void)enterInterfaceState:(ASInterfaceState)interfaceState;
@@ -207,12 +234,31 @@ __unused static NSString * _Nonnull NSStringFromASHierarchyState(ASHierarchyStat
  * ASNetworkImageNode and ASMultiplexImageNode set this to YES, because they load data from a database or server,
  * and are expected to support a placeholder state given that display is often blocked on slow data fetching.
  */
-@property (nonatomic, assign) BOOL shouldBypassEnsureDisplay;
+@property (atomic) BOOL shouldBypassEnsureDisplay;
 
 /**
  * @abstract Checks whether a node should be scheduled for display, considering its current and new interface states.
  */
 - (BOOL)shouldScheduleDisplayWithNewInterfaceState:(ASInterfaceState)newInterfaceState;
+
+/**
+ * @abstract safeAreaInsets will fallback to this value if the corresponding UIKit property is not available
+ * (due to an old iOS version).
+ *
+ * @discussion This should be set by the owning view controller based on it's layout guides.
+ * If this is not a view controllet's node the value will be calculated automatically by the parent node.
+ */
+@property (nonatomic, assign) UIEdgeInsets fallbackSafeAreaInsets;
+
+/**
+ * @abstract Indicates if this node is a view controller's root node. Defaults to NO.
+ *
+ * @discussion Set to YES in -[ASViewController initWithNode:].
+ *
+ * YES here only means that this node is used as an ASViewController node. It doesn't mean that this node is a root of
+ * ASDisplayNode hierarchy, e.g. when its view controller is parented by another ASViewController.
+ */
+@property (nonatomic, assign, getter=isViewControllerRoot) BOOL viewControllerRoot;
 
 @end
 
