@@ -497,7 +497,12 @@ static void *ASVideoPlayerNodeContext = &ASVideoPlayerNodeContext;
   }
 
   if (toState == ASVideoNodePlayerStateReadyToPlay) {
-    _duration = _videoNode.currentItem.duration;
+    if (CMTIMERANGE_IS_VALID(_videoNode.loopRange)) {
+      _duration = _videoNode.loopRange.duration;
+    } else {
+      _duration = _videoNode.currentItem.duration;
+    }
+
     [self updateDurationTimeLabel];
   }
 
