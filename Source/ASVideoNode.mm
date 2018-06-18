@@ -64,6 +64,7 @@ static NSString * const kRate = @"rate";
   } _delegateFlags;
   
   BOOL _shouldBePlaying;
+  BOOL _shouldSeekToLoopStart;
   
   BOOL _shouldAutorepeat;
   BOOL _shouldAutoplay;
@@ -78,10 +79,8 @@ static NSString * const kRate = @"rate";
   AVAudioMix *_audioMix;
   
   AVPlayerItem *_currentPlayerItem;
-  AVQueuePlayer *_player;
-  
+  AVPlayer *_player;
   CMTimeRange _loopRange;
-  id _playerLooper;
   
   id _timeObserver;
   int32_t _periodicTimeObserverTimescale;
@@ -148,14 +147,11 @@ static NSString * const kRate = @"rate";
 
   playerItem.videoComposition = _videoComposition;
   playerItem.audioMix = _audioMix;
-  return playerItem;
-}
+  playerItem.preferredForwardBufferDuration = CMTIME_IS_VALID(_loopRange.start) ? CMTimeGetSeconds(_loopRange.start) : 0.0;
 
-- (void)constructPlayerLooper
-{
-  if (AS_AT_LEAST_IOS10 && _shouldAutorepeat) {
-    _playerLooper = [AVPlayerLooper playerLooperWithPlayer:_player templateItem:_currentPlayerItem timeRange:_loopRange];
-  }
+  _shouldSeekToLoopStart = CMTIMERANGE_IS_VALID(_loopRange);
+
+  return playerItem;
 }
 
 - (void)prepareToPlayAsset:(AVAsset *)asset withKeys:(NSArray<NSString *> *)requestedKeys
@@ -184,8 +180,7 @@ static NSString * const kRate = @"rate";
   if (_player != nil) {
     [_player replaceCurrentItemWithPlayerItem:playerItem];
   } else {
-    self.player = [AVQueuePlayer playerWithPlayerItem:playerItem];
-    self.player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
+    self.player = [AVPlayer playerWithPlayerItem:playerItem];
   }
 
   if (_delegateFlags.delegateVideoNodeDidSetCurrentItem) {
@@ -294,7 +289,8 @@ static NSString * const kRate = @"rate";
   ASVideoNode * __weak weakSelf = self;
   AVAsset *asset = self.asset;
 
-  [self imageAtTime:kCMTimeZero completionHandler:^(UIImage *image) {
+  CMTime time = CMTIME_IS_VALID(_loopRange.start) ? _loopRange.start : kCMTimeZero;
+  [self imageAtTime:time completionHandler:^(UIImage *image) {
     ASPerformBlockOnMainThread(^{
       // Ensure the asset hasn't changed since the image request was made
       if (ASAssetIsEqual(weakSelf.asset, asset)) {
@@ -330,6 +326,15 @@ static NSString * const kRate = @"rate";
   });
 }
 
+- (void)seekToLoopStart
+{
+  if (_shouldSeekToLoopStart) {
+    [_player seekToTime:_loopRange.start toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+    _currentPlayerItem.preferredForwardBufferDuration = 0;
+    _shouldSeekToLoopStart = false;
+  }
+}
+
 - (void)setVideoPlaceholderImage:(UIImage *)image
 {
   NSString *gravity = self.gravity;
@@ -347,8 +352,6 @@ static NSString * const kRate = @"rate";
   if (object == _currentPlayerItem) {
     if ([keyPath isEqualToString:kStatus]) {
       if ([change[NSKeyValueChangeNewKey] integerValue] == AVPlayerItemStatusReadyToPlay) {
-        [self constructPlayerLooper];
-
         if (self.playerState != ASVideoNodePlayerStatePlaying) {
           self.playerState = ASVideoNodePlayerStateReadyToPlay;
           if (_shouldBePlaying && ASInterfaceStateIncludesVisible(self.interfaceState)) {
@@ -363,12 +366,14 @@ static NSString * const kRate = @"rate";
     } else if ([keyPath isEqualToString:kPlaybackLikelyToKeepUpKey]) {
       BOOL likelyToKeepUp = [change[NSKeyValueChangeNewKey] boolValue];
       if (likelyToKeepUp && self.playerState == ASVideoNodePlayerStatePlaying) {
+        [self seekToLoopStart];
         return;
       }
       if (!likelyToKeepUp) {
         self.playerState = ASVideoNodePlayerStateLoading;
       } else if (self.playerState != ASVideoNodePlayerStateFinished) {
         self.playerState = ASVideoNodePlayerStatePlaybackLikelyToKeepUpButNotPlaying;
+        [self seekToLoopStart];
       }
       if (_shouldBePlaying && (_shouldAggressivelyRecoverFromStall || likelyToKeepUp) && ASInterfaceStateIncludesVisible(self.interfaceState)) {
         if (self.playerState == ASVideoNodePlayerStateLoading && _delegateFlags.delegateVideoNodeDidRecoverFromStall) {
@@ -437,18 +442,24 @@ static NSString * const kRate = @"rate";
 
 - (void)periodicTimeObserver:(CMTime)time
 {
+  BOOL didPlayToEnd = NO;
   if (CMTIMERANGE_IS_VALID(_loopRange)) {
     time = CMTimeSubtract(time, _loopRange.start);
+
+    didPlayToEnd = CMTIME_COMPARE_INLINE(time, >=, _loopRange.duration);
   }
 
   NSTimeInterval timeInSeconds = CMTimeGetSeconds(time);
   if (timeInSeconds <= 0) {
     return;
   }
-  
+
   if (_delegateFlags.delegateVideoNodeDidPlayToTimeInterval) {
     [self.delegate videoNode:self didPlayToTimeInterval:timeInSeconds];
-    
+  }
+
+  if (didPlayToEnd) {
+    [self didPlayToEnd:nil];
   }
 }
 
@@ -600,7 +611,7 @@ static NSString * const kRate = @"rate";
   return _audioMix;
 }
 
-- (AVQueuePlayer *)player
+- (AVPlayer *)player
 {
   ASLockScopeSelf();
   return _player;
@@ -703,7 +714,6 @@ static NSString * const kRate = @"rate";
     [self setNeedsLayout];
   }
   
-  
   [_player play];
   _shouldBePlaying = YES;
 }
@@ -748,8 +758,9 @@ static NSString * const kRate = @"rate";
     [_playerNode removeFromSupernode];
     _playerNode = nil;
   }
-  
-  [_player seekToTime:kCMTimeZero];
+
+  CMTime seekToTime = CMTIMERANGE_IS_VALID(_loopRange) ? _loopRange.start : kCMTimeZero;
+  [_player seekToTime:seekToTime];
   [self pause];
 }
 
@@ -770,11 +781,14 @@ static NSString * const kRate = @"rate";
     [self.delegate videoDidPlayToEnd:self];
   }
 
-  if (_shouldAutorepeat == NO) {
+  if (_shouldAutorepeat) {
+    CMTime seekToTime = CMTIMERANGE_IS_VALID(_loopRange) ? _loopRange.start : kCMTimeZero;
+
     [self pause];
-  } else if (_playerLooper == nil) {
-    [_player seekToTime:kCMTimeZero];
+    [_player seekToTime:seekToTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
     [self play];
+  } else {
+    [self pause];
   }
 }
 
@@ -840,7 +854,7 @@ static NSString * const kRate = @"rate";
   [self setNeedsLayout];
 }
 
-- (void)setPlayer:(AVQueuePlayer *)player
+- (void)setPlayer:(AVPlayer *)player
 {
   ASLockScopeSelf();
 
@@ -879,12 +893,6 @@ static NSString * const kRate = @"rate";
 {
   [self removePlayerItemObservers:_currentPlayerItem];
   [self removePlayerObservers:_player];
-
-  if (AS_AT_LEAST_IOS10 && _playerLooper != nil) {
-    AVPlayerLooper *playerLooper = ((AVPlayerLooper *)_playerLooper);
-    [playerLooper disableLooping];
-    _playerLooper = nil;
-  }
 
   NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
   [notificationCenter removeObserver:self name:UIApplicationDidBecomeActiveNotification object:nil];
