@@ -2,8 +2,9 @@
 //  ASPagerNodeTests.m
 //  Texture
 //
-//  Created by Luke Parham on 11/6/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <XCTest/XCTest.h>
@@ -35,13 +36,14 @@
 @end
 
 @interface ASPagerNodeTestController: UIViewController
-@property (nonatomic, strong) ASPagerNodeTestDataSource *testDataSource;
-@property (nonatomic, strong) ASPagerNode *pagerNode;
+@property (nonatomic) ASPagerNodeTestDataSource *testDataSource;
+@property (nonatomic) ASPagerNode *pagerNode;
 @end
 
 @implementation ASPagerNodeTestController
 
-- (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+- (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
   self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
   if (self) {
     // Populate these immediately so that they're not unexpectedly nil during tests.
@@ -58,14 +60,15 @@
 @end
 
 @interface ASPagerNodeTests : XCTestCase
-@property (nonatomic, strong) ASPagerNode *pagerNode;
+@property (nonatomic) ASPagerNode *pagerNode;
 
-@property (nonatomic, strong) ASPagerNodeTestDataSource *testDataSource;
+@property (nonatomic) ASPagerNodeTestDataSource *testDataSource;
 @end
 
 @implementation ASPagerNodeTests
 
-- (void)testPagerReturnsIndexOfPages {
+- (void)testPagerReturnsIndexOfPages
+{
   ASPagerNodeTestController *testController = [self testController];
   
   ASCellNode *cellNode = [testController.pagerNode nodeForPageAtIndex:0];
@@ -73,7 +76,8 @@
   XCTAssertEqual([testController.pagerNode indexOfPageWithNode:cellNode], 0);
 }
 
-- (void)testPagerReturnsNotFoundForCellThatDontExistInPager {
+- (void)testPagerReturnsNotFoundForCellThatDontExistInPager
+{
   ASPagerNodeTestController *testController = [self testController];
 
   ASCellNode *badNode = [[ASCellNode alloc] init];
@@ -81,7 +85,17 @@
   XCTAssertEqual([testController.pagerNode indexOfPageWithNode:badNode], NSNotFound);
 }
 
-- (ASPagerNodeTestController *)testController {
+- (void)testScrollPageToIndex
+{
+  ASPagerNodeTestController *testController = [self testController];
+  testController.pagerNode.frame = CGRectMake(0, 0, 500, 500);
+  [testController.pagerNode scrollToPageAtIndex:1 animated:false];
+
+  XCTAssertEqual(testController.pagerNode.currentPageIndex, 1);
+}
+
+- (ASPagerNodeTestController *)testController
+{
   ASPagerNodeTestController *testController = [[ASPagerNodeTestController alloc] initWithNibName:nil bundle:nil];
   UIWindow *window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
   [window makeKeyAndVisible];
@@ -128,8 +142,8 @@
 #pragma clang diagnostic pop
   XCTAssertEqualObjects(NSStringFromCGRect(window.bounds), NSStringFromCGRect(node.frame));
   XCTAssertEqualObjects(NSStringFromCGRect(window.bounds), NSStringFromCGRect(cell.frame));
-  XCTAssertEqual(pagerNode.view.contentOffset.y, 0);
-  XCTAssertEqual(pagerNode.view.contentInset.top, 0);
+  XCTAssertEqual(pagerNode.contentOffset.y, 0);
+  XCTAssertEqual(pagerNode.contentInset.top, 0);
   
   e = [self expectationWithDescription:@"Transition completed"];
   // Push another view controller
@@ -158,8 +172,8 @@
 #pragma clang diagnostic pop
   XCTAssertEqualObjects(NSStringFromCGRect(window.bounds), NSStringFromCGRect(node.frame));
   XCTAssertEqualObjects(NSStringFromCGRect(window.bounds), NSStringFromCGRect(cell.frame));
-  XCTAssertEqual(pagerNode.view.contentOffset.y, 0);
-  XCTAssertEqual(pagerNode.view.contentInset.top, 0);
+  XCTAssertEqual(pagerNode.contentOffset.y, 0);
+  XCTAssertEqual(pagerNode.contentInset.top, 0);
 }
 
 @end

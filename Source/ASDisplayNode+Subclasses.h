@@ -2,20 +2,10 @@
 //  ASDisplayNode+Subclasses.h
 //  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-
-#import <pthread.h>
 
 #import <AsyncDisplayKit/ASBlockTypes.h>
 #import <AsyncDisplayKit/ASDisplayNode.h>
@@ -44,60 +34,6 @@ NS_ASSUME_NONNULL_BEGIN
  * variables.
  */
 
-@protocol ASInterfaceStateDelegate <NSObject>
-@required
-
-/**
- * @abstract Called whenever any bit in the ASInterfaceState bitfield is changed.
- * @discussion Subclasses may use this to monitor when they become visible, should free cached data, and much more.
- * @see ASInterfaceState
- */
-- (void)interfaceStateDidChange:(ASInterfaceState)newState fromState:(ASInterfaceState)oldState;
-
-/**
- * @abstract Called whenever the node becomes visible.
- * @discussion Subclasses may use this to monitor when they become visible.
- * @note This method is guaranteed to be called on main.
- */
-- (void)didEnterVisibleState;
-
-/**
- * @abstract Called whenever the node is no longer visible.
- * @discussion Subclasses may use this to monitor when they are no longer visible.
- * @note This method is guaranteed to be called on main.
- */
-- (void)didExitVisibleState;
-
-/**
- * @abstract Called whenever the the node has entered the display state.
- * @discussion Subclasses may use this to monitor when a node should be rendering its content.
- * @note This method is guaranteed to be called on main.
- */
-- (void)didEnterDisplayState;
-
-/**
- * @abstract Called whenever the the node has exited the display state.
- * @discussion Subclasses may use this to monitor when a node should no longer be rendering its content.
- * @note This method is guaranteed to be called on main.
- */
-- (void)didExitDisplayState;
-
-/**
- * @abstract Called whenever the the node has entered the preload state.
- * @discussion Subclasses may use this to monitor data for a node should be preloaded, either from a local or remote source.
- * @note This method is guaranteed to be called on main.
- */
-- (void)didEnterPreloadState;
-
-/**
- * @abstract Called whenever the the node has exited the preload state.
- * @discussion Subclasses may use this to monitor whether preloading data for a node should be canceled.
- * @note This method is guaranteed to be called on main.
- */
-- (void)didExitPreloadState;
-
-@end
-
 @interface ASDisplayNode (Subclassing) <ASInterfaceStateDelegate>
 
 #pragma mark - Properties
@@ -109,12 +45,12 @@ NS_ASSUME_NONNULL_BEGIN
  * @discussion For node subclasses that implement manual layout (e.g., they have a custom -layout method), 
  * calculatedLayout may be accessed on subnodes to retrieved cached information about their size.  
  * This allows -layout to be very fast, saving time on the main thread.  
- * Note: .calculatedLayout will only be set for nodes that have had -measure: called on them.  
- * For manual layout, make sure you call -measure: in your implementation of -calculateSizeThatFits:.
+ * Note: .calculatedLayout will only be set for nodes that have had -layoutThatFits: called on them.
+ * For manual layout, make sure you call -layoutThatFits: in your implementation of -calculateSizeThatFits:.
  *
  * For node subclasses that use automatic layout (e.g., they implement -layoutSpecThatFits:), 
  * it is typically not necessary to use .calculatedLayout at any point.  For these nodes, 
- * the ASLayoutSpec implementation will automatically call -measureWithSizeRange: on all of the subnodes,
+ * the ASLayoutSpec implementation will automatically call -layoutThatFits: on all of the subnodes,
  * and the ASDisplayNode base class implementation of -layout will automatically make use of .calculatedLayout on the subnodes.
  *
  * @return Layout that wraps calculated size returned by -calculateSizeThatFits: (in manual layout mode),
@@ -122,7 +58,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  * @warning Subclasses must not override this; it returns the last cached layout and is never expensive.
  */
-@property (nullable, nonatomic, readonly, strong) ASLayout *calculatedLayout;
+@property (nullable, readonly) ASLayout *calculatedLayout;
 
 #pragma mark - View Lifecycle
 /** @name View Lifecycle */
@@ -176,7 +112,7 @@ NS_ASSUME_NONNULL_BEGIN
  * or -calculateSizeThatFits:, whichever method is overriden. Subclasses rarely need to override this method,
  * override -layoutSpecThatFits: or -calculateSizeThatFits: instead.
  *
- * @note This method should not be called directly outside of ASDisplayNode; use -measure: or -calculatedLayout instead.
+ * @note This method should not be called directly outside of ASDisplayNode; use -layoutThatFits: or -calculatedLayout instead.
  */
 - (ASLayout *)calculateLayoutThatFits:(ASSizeRange)constrainedSize;
 
@@ -311,12 +247,23 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  * @abstract Indicates that the receiver is about to display.
  *
+ * @discussion Deprecated in 2.5.
+ *
  * @discussion Subclasses may override this method to be notified when display (asynchronous or synchronous) is
  * about to begin.
  *
  * @note Called on the main thread only
  */
-- (void)displayWillStart ASDISPLAYNODE_REQUIRES_SUPER;
+- (void)displayWillStart ASDISPLAYNODE_REQUIRES_SUPER ASDISPLAYNODE_DEPRECATED_MSG("Use displayWillStartAsynchronously: instead.");
+
+/**
+ * @abstract Indicates that the receiver is about to display.
+ *
+ * @discussion Subclasses may override this method to be notified when display (asynchronous or synchronous) is
+ * about to begin.
+ *
+ * @note Called on the main thread only
+ */
 - (void)displayWillStartAsynchronously:(BOOL)asynchronously ASDISPLAYNODE_REQUIRES_SUPER;
 
 /**
@@ -340,9 +287,15 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)didExitHierarchy ASDISPLAYNODE_REQUIRES_SUPER;
 
 /**
+ * Called just after the view is added to a window.
+ * Note: this may be called multiple times during view controller transitions. To overcome this: use didEnterVisibleState or its equavalents.
+ */
+- (void)didEnterHierarchy ASDISPLAYNODE_REQUIRES_SUPER;
+
+/**
  * @abstract Whether the view or layer of this display node is currently in a window
  */
-@property (nonatomic, readonly, assign, getter=isInHierarchy) BOOL inHierarchy;
+@property (readonly, getter=isInHierarchy) BOOL inHierarchy;
 
 /**
  * Provides an opportunity to clear backing store and other memory-intensive intermediates, such as text layout managers
@@ -411,7 +364,7 @@ NS_ASSUME_NONNULL_BEGIN
  *
  * @see setNeedsDisplayAtScale:
  */
-@property (nonatomic, assign, readonly) CGFloat contentsScaleForDisplay;
+@property (readonly) CGFloat contentsScaleForDisplay;
 
 
 #pragma mark - Touch handling
@@ -514,7 +467,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-#define ASDisplayNodeAssertThreadAffinity(viewNode)   ASDisplayNodeAssert(!viewNode || ASDisplayNodeThreadIsMain() || !(viewNode).nodeLoaded, @"Incorrect display node thread affinity - this method should not be called off the main thread after the ASDisplayNode's view or layer have been created")
-#define ASDisplayNodeCAssertThreadAffinity(viewNode) ASDisplayNodeCAssert(!viewNode || ASDisplayNodeThreadIsMain() || !(viewNode).nodeLoaded, @"Incorrect display node thread affinity - this method should not be called off the main thread after the ASDisplayNode's view or layer have been created")
+#define ASDisplayNodeAssertThreadAffinity(viewNode)   ASDisplayNodeAssert(!viewNode || ASMainThreadAssertionsAreDisabled() || ASDisplayNodeThreadIsMain() || !(viewNode).nodeLoaded, @"Incorrect display node thread affinity - this method should not be called off the main thread after the ASDisplayNode's view or layer have been created")
+#define ASDisplayNodeCAssertThreadAffinity(viewNode) ASDisplayNodeCAssert(!viewNode || ASMainThreadAssertionsAreDisabled() || ASDisplayNodeThreadIsMain() || !(viewNode).nodeLoaded, @"Incorrect display node thread affinity - this method should not be called off the main thread after the ASDisplayNode's view or layer have been created")
 
 NS_ASSUME_NONNULL_END

@@ -19,7 +19,7 @@ The most important thing to remember is that your init method must be capable of
 
 ### `-didLoad`
 
-This method is conceptually similar to UIViewController's `-viewDidLoad` method and is the point where the backing view has been loaded.  It is guaranteed to be called on the **main thread** and is the appropriate place to do any UIKit things (such as adding gesture recognizers, touching the view / layer, initializing UIKIt objects). 
+This method is conceptually similar to UIViewController's `-viewDidLoad` method; it’s called once and is the point where the backing view has been loaded.  It is guaranteed to be called on the **main thread** and is the appropriate place to do any UIKit things (such as adding gesture recognizers, touching the view / layer, initializing UIKit objects). 
 
 ### `-layoutSpecThatFits:`
 
@@ -51,7 +51,7 @@ An `ASViewController` is a regular `UIViewController` subclass that has special 
 
 ### `-init` 
 
-This method is called once, at the very begining of an ASViewController's lifecycle. As with UIViewController initialization, it is best practice to **never access** `self.view` or `self.node.view` in this method as it will force the view to be created early. Instead, do any view access in -viewDidLoad. 
+This method is called once, at the very beginning of an ASViewController's lifecycle. As with UIViewController initialization, it is best practice to **never access** `self.view` or `self.node.view` in this method as it will force the view to be created early. Instead, do any view access in -viewDidLoad. 
 
 ASViewController's designated initializer is `initWithNode:`. A typical initializer will look something like the code below. Note how the ASViewController's node is created _before_ calling super. An ASViewController manages a node similarly to how a UIViewController manages a view, but the initialization is slightly different. 
 

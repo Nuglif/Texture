@@ -2,24 +2,15 @@
 //  ASDisplayNodeImplicitHierarchyTests.m
 //  Texture
 //
-//  Created by Levi McCallum on 2/1/16.
-//
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
-//
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <XCTest/XCTest.h>
 
 #import <AsyncDisplayKit/AsyncDisplayKit.h>
+#import <AsyncDisplayKit/ASDisplayNode+FrameworkPrivate.h>
 #import "ASDisplayNodeTestsHelper.h"
 
 @interface ASSpecTestDisplayNode : ASDisplayNode
@@ -27,7 +18,7 @@
 /**
  Simple state identifier to allow control of current spec inside of the layoutSpecBlock
  */
-@property (strong, nonatomic) NSNumber *layoutState;
+@property (nonatomic) NSNumber *layoutState;
 
 @end
 
@@ -101,6 +92,49 @@
   XCTAssertEqual(node.subnodes[4], node5);
 }
 
+- (void)testInitialNodeInsertionWhenEnterPreloadState
+{
+  static CGSize kSize = {100, 100};
+
+  static NSInteger subnodeCount = 5;
+  NSMutableArray<ASDisplayNode *> *subnodes = [NSMutableArray arrayWithCapacity:subnodeCount];
+  for (NSInteger i = 0; i < subnodeCount; i++) {
+    ASDisplayNode *subnode = [[ASDisplayNode alloc] init];
+    // As we will involve a stack spec we have to give the nodes an intrinsic content size
+    subnode.style.preferredSize = kSize;
+    [subnodes addObject:subnode];
+  }
+
+  ASSpecTestDisplayNode *node = [[ASSpecTestDisplayNode alloc] init];
+  [node setHierarchyState:ASHierarchyStateRangeManaged];
+  node.automaticallyManagesSubnodes = YES;
+  node.layoutSpecBlock = ^(ASDisplayNode *weakNode, ASSizeRange constrainedSize) {
+    ASAbsoluteLayoutSpec *absoluteLayout = [ASAbsoluteLayoutSpec absoluteLayoutSpecWithChildren:@[subnodes[3]]];
+
+    ASStackLayoutSpec *stack1 = [[ASStackLayoutSpec alloc] init];
+    [stack1 setChildren:@[subnodes[0], subnodes[1]]];
+
+    ASStackLayoutSpec *stack2 = [[ASStackLayoutSpec alloc] init];
+    [stack2 setChildren:@[subnodes[2], absoluteLayout]];
+
+    return [ASAbsoluteLayoutSpec absoluteLayoutSpecWithChildren:@[stack1, stack2, subnodes[4]]];
+  };
+
+  ASDisplayNodeSizeToFitSizeRange(node, ASSizeRangeMake(CGSizeZero, CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX)));
+  [node recursivelySetInterfaceState:ASInterfaceStatePreload];
+
+  ASCATransactionQueueWait(nil);
+  // No premature view allocation
+  XCTAssertFalse(node.isNodeLoaded);
+  // Subnodes should be inserted, laid out and entered preload state
+  XCTAssertTrue([subnodes isEqualToArray:node.subnodes]);
+  for (NSInteger i = 0; i < subnodeCount; i++) {
+    ASDisplayNode *subnode = subnodes[i];
+    XCTAssertTrue(CGSizeEqualToSize(kSize, subnode.bounds.size));
+    XCTAssertTrue(ASInterfaceStateIncludesPreload(subnode.interfaceState));
+  }
+}
+
 - (void)testCalculatedLayoutHierarchyTransitions
 {
   static CGSize kSize = {100, 100};
@@ -108,7 +142,11 @@
   ASDisplayNode *node1 = [[ASDisplayNode alloc] init];
   ASDisplayNode *node2 = [[ASDisplayNode alloc] init];
   ASDisplayNode *node3 = [[ASDisplayNode alloc] init];
-  
+
+  node1.debugName = @"a";
+  node2.debugName = @"b";
+  node3.debugName = @"c";
+
   // As we will involve a stack spec we have to give the nodes an intrinsic content size
   node1.style.preferredSize = kSize;
   node2.style.preferredSize = kSize;

@@ -1,16 +1,16 @@
 //
 //  RefreshingSectionControllerType.h
-//  Sample
+//  Texture
 //
-//  Created by Adlai Holler on 12/29/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <IGListKit/IGListKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol RefreshingSectionControllerType <IGListSectionType>
+@protocol RefreshingSectionControllerType
 
 - (void)refreshContentWithCompletion:(nullable void(^)())completion;
 

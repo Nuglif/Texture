@@ -2,8 +2,9 @@
 //  ASLayoutSpecTests.m
 //  Texture
 //
-//  Created by Michael Schneider on 1/27/17.
-//  Copyright © 2017 Facebook. All rights reserved.
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <XCTest/XCTest.h>
@@ -21,8 +22,8 @@
  *  - primitive / ASStackLayoutDirection (extendedDirection)
  */
 @protocol ASDKExtendedLayoutElement <NSObject>
-@property (assign, nonatomic) CGFloat extendedWidth;
-@property (assign, nonatomic) ASDimension extendedDimension;
+@property (nonatomic) CGFloat extendedWidth;
+@property (nonatomic) ASDimension extendedDimension;
 @property (copy, nonatomic) NSString *extendedName;
 @end
 
@@ -39,7 +40,7 @@ ASDK_STYLE_PROP_OBJ(NSString *, extendedName, setExtendedName);
 @end
 
 /*
- * As the ASLayoutableStyle conforms to the ASDKExtendedLayoutable protocol now, ASDKExtendedLayoutable properties
+ * As the ASLayoutElementStyle conforms to the ASDKExtendedLayoutElement protocol now, ASDKExtendedLayoutElement properties
  * can be accessed in ASDKExtendedLayoutSpec
  */
 @interface ASDKExtendedLayoutSpec : ASLayoutSpec

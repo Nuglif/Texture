@@ -2,17 +2,9 @@
 //  ASTableView+Undeprecated.h
 //  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
-//
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <Foundation/Foundation.h>
@@ -31,8 +23,22 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @interface ASTableView (Undeprecated)
 
-@property (nonatomic, weak) id<ASTableDelegate>   asyncDelegate;
-@property (nonatomic, weak) id<ASTableDataSource> asyncDataSource;
+@property (nullable, nonatomic, weak) id<ASTableDelegate>   asyncDelegate;
+@property (nullable, nonatomic, weak) id<ASTableDataSource> asyncDataSource;
+@property (nonatomic) UIEdgeInsets contentInset;
+@property (nonatomic) CGPoint contentOffset;
+@property (nonatomic) BOOL automaticallyAdjustsContentOffset;
+@property (nonatomic) BOOL inverted;
+@property (nullable, nonatomic, readonly) NSArray<NSIndexPath *> *indexPathsForVisibleRows;
+@property (nullable, nonatomic, readonly) NSArray<NSIndexPath *> *indexPathsForSelectedRows;
+@property (nullable, nonatomic, readonly) NSIndexPath *indexPathForSelectedRow;
+
+/**
+ * The number of screens left to scroll before the delegate -tableView:beginBatchFetchingWithContext: is called.
+ *
+ * Defaults to two screenfuls.
+ */
+@property (nonatomic) CGFloat leadingScreensForBatching;
 
 /**
  * Initializer.
@@ -43,10 +49,6 @@ NS_ASSUME_NONNULL_BEGIN
  * @param style A constant that specifies the style of the table view. See UITableViewStyle for descriptions of valid constants.
  */
 - (instancetype)initWithFrame:(CGRect)frame style:(UITableViewStyle)style;
-
-@property (nonatomic, assign) BOOL automaticallyAdjustsContentOffset;
-
-@property (nonatomic, assign) BOOL inverted;
 
 /**
  * Tuning parameters for a range type in full mode.
@@ -109,12 +111,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)selectRowAtIndexPath:(NSIndexPath *)indexPath animated:(BOOL)animated scrollPosition:(UITableViewScrollPosition)scrollPosition;
 
-@property (nonatomic, readonly, nullable) NSArray<NSIndexPath *> *indexPathsForVisibleRows;
-
-@property (nonatomic, readonly, nullable) NSArray<NSIndexPath *> *indexPathsForSelectedRows;
-
-@property (nonatomic, readonly, nullable) NSIndexPath *indexPathForSelectedRow;
-
 - (nullable NSIndexPath *)indexPathForRowAtPoint:(CGPoint)point;
 
 - (nullable NSArray<NSIndexPath *> *)indexPathsForRowsInRect:(CGRect)rect;
@@ -136,20 +132,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable NSIndexPath *)indexPathForNode:(ASCellNode *)cellNode AS_WARN_UNUSED_RESULT;
 
 /**
- * The number of screens left to scroll before the delegate -tableView:beginBatchFetchingWithContext: is called.
- *
- * Defaults to two screenfuls.
- */
-@property (nonatomic, assign) CGFloat leadingScreensForBatching;
-
-/**
  * Reload everything from scratch, destroying the working range and all cached nodes.
  *
  * @param completion block to run on completion of asynchronous loading or nil. If supplied, the block is run on
  * the main thread.
  * @warning This method is substantially more expensive than UITableView's version.
  */
--(void)reloadDataWithCompletion:(void (^ _Nullable)())completion;
+-(void)reloadDataWithCompletion:(void (^ _Nullable)(void))completion;
 
 /**
  * Reload everything from scratch, destroying the working range and all cached nodes.
@@ -157,14 +146,6 @@ NS_ASSUME_NONNULL_BEGIN
  * @warning This method is substantially more expensive than UITableView's version.
  */
 - (void)reloadData;
-
-/**
- * Reload everything from scratch entirely on the main thread, destroying the working range and all cached nodes.
- *
- * @warning This method is substantially more expensive than UITableView's version and will block the main thread while
- * all the cells load.
- */
-- (void)reloadDataImmediately;
 
 /**
  * Triggers a relayout of all nodes.
@@ -310,6 +291,8 @@ NS_ASSUME_NONNULL_BEGIN
  * before this method is called.
  */
 - (void)moveRowAtIndexPath:(NSIndexPath *)indexPath toIndexPath:(NSIndexPath *)newIndexPath;
+
+- (void)setContentOffset:(CGPoint)contentOffset animated:(BOOL)animated;
 
 @end
 NS_ASSUME_NONNULL_END

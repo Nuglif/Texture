@@ -1,17 +1,17 @@
-/* This file provided by Facebook is for non-commercial testing and evaluation
- * purposes only.  Facebook reserves all rights not expressly granted.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
- * FACEBOOK BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
+//
+//  AppDelegate.m
+//  Texture
+//
+//  Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
+//
 
 #import "AppDelegate.h"
 
+#import "TabBarController.h"
+#import "CollectionViewController.h"
 #import "ViewController.h"
+
 
 @implementation AppDelegate
 
@@ -19,7 +19,17 @@
 {
   self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
   self.window.backgroundColor = [UIColor whiteColor];
-  self.window.rootViewController = [[ViewController alloc] init];
+
+  ViewController *viewController = [[ViewController alloc] init];
+  viewController.tabBarItem.title = @"TextStress";
+
+  CollectionViewController *cvc = [[CollectionViewController alloc] init];
+  cvc.tabBarItem.title = @"Flexbox";
+
+  TabBarController *tabBarController = [[TabBarController alloc] init];
+  tabBarController.viewControllers = @[cvc, viewController];
+
+  self.window.rootViewController = tabBarController;
   [self.window makeKeyAndVisible];
   return YES;
 }

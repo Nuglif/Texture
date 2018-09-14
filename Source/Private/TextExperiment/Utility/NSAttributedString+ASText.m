@@ -1,12 +1,9 @@
 //
 //  NSAttributedString+ASText.m
-//  Modified from YYText <https://github.com/ibireme/YYText>
+//  Texture
 //
-//  Created by ibireme on 14/10/7.
-//  Copyright (c) 2015 ibireme.
-//
-//  This source code is licensed under the MIT-style license found in the
-//  LICENSE file in the root directory of this source tree.
+//  Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/NSAttributedString+ASText.h>
@@ -600,7 +597,12 @@ return style. _attr_;
   dispatch_once(&onceToken, ^{
     failSet = [NSMutableSet new];
     [failSet addObject:(id)kCTGlyphInfoAttributeName];
+#if TARGET_OS_IOS
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     [failSet addObject:(id)kCTCharacterShapeAttributeName];
+#pragma clang diagnostic pop
+#endif
     [failSet addObject:(id)kCTLanguageAttributeName];
     [failSet addObject:(id)kCTRunDelegateAttributeName];
     [failSet addObject:(id)kCTBaselineClassAttributeName];
@@ -1049,7 +1051,10 @@ style. _attr_ = _attr_; \
 }
 
 - (void)as_setCharacterShape:(NSNumber *)characterShape range:(NSRange)range {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
   [self as_setAttribute:(id)kCTCharacterShapeAttributeName value:characterShape range:range];
+#pragma clang diagnostic pop
 }
 
 - (void)as_setRunDelegate:(CTRunDelegateRef)runDelegate range:(NSRange)range {
@@ -1176,51 +1181,6 @@ style. _attr_ = _attr_; \
   NSUInteger length = self.length;
   [self replaceCharactersInRange:NSMakeRange(length, 0) withString:string];
   [self as_removeDiscontinuousAttributesInRange:NSMakeRange(length, string.length)];
-}
-
-- (void)as_setClearColorToJoinedEmoji {
-  NSString *str = self.string;
-  if (str.length < 8) return;
-  
-  // Most string do not contains the joined-emoji, test the joiner first.
-  BOOL containsJoiner = NO;
-  {
-    CFStringRef cfStr = (__bridge CFStringRef)str;
-    BOOL needFree = NO;
-    UniChar *chars = NULL;
-    chars = (UniChar *)CFStringGetCharactersPtr(cfStr);
-    if (!chars) {
-      chars = (UniChar *)malloc(str.length * sizeof(UniChar));
-      if (chars) {
-        needFree = YES;
-        CFStringGetCharacters(cfStr, CFRangeMake(0, str.length), chars);
-      }
-    }
-    if (!chars) { // fail to get unichar..
-      containsJoiner = YES;
-    } else {
-      for (int i = 0, max = (int)str.length; i < max; i++) {
-        if (chars[i] == 0x200D) { // 'ZERO WIDTH JOINER' (U+200D)
-          containsJoiner = YES;
-          break;
-        }
-      }
-      if (needFree) free(chars);
-    }
-  }
-  if (!containsJoiner) return;
-  
-  // NSRegularExpression is designed to be immutable and thread safe.
-  static NSRegularExpression *regex;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    regex = [NSRegularExpression regularExpressionWithPattern:@"((👨‍👩‍👧‍👦|👨‍👩‍👦‍👦|👨‍👩‍👧‍👧|👩‍👩‍👧‍👦|👩‍👩‍👦‍👦|👩‍👩‍👧‍👧|👨‍👨‍👧‍👦|👨‍👨‍👦‍👦|👨‍👨‍👧‍👧)+|(👨‍👩‍👧|👩‍👩‍👦|👩‍👩‍👧|👨‍👨‍👦|👨‍👨‍👧))" options:kNilOptions error:nil];
-  });
-  
-  UIColor *clear = [UIColor clearColor];
-  [regex enumerateMatchesInString:str options:kNilOptions range:NSMakeRange(0, str.length) usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
-    [self as_setColor:clear range:result.range];
-  }];
 }
 
 - (void)as_removeDiscontinuousAttributesInRange:(NSRange)range {

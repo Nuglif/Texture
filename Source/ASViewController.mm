@@ -2,28 +2,19 @@
 //  ASViewController.mm
 //  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
-//
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASViewController.h>
 #import <AsyncDisplayKit/ASAssert.h>
 #import <AsyncDisplayKit/ASDisplayNode+FrameworkPrivate.h>
 #import <AsyncDisplayKit/ASLayout.h>
+#import <AsyncDisplayKit/ASLog.h>
 #import <AsyncDisplayKit/ASTraitCollection.h>
 #import <AsyncDisplayKit/ASRangeControllerUpdateRangeProtocol+Beta.h>
 #import <AsyncDisplayKit/ASInternalHelpers.h>
-
-#define AS_LOG_VISIBILITY_CHANGES 0
 
 @implementation ASViewController
 {
@@ -33,6 +24,7 @@
   NSInteger _visibilityDepth;
   BOOL _selfConformsToRangeModeProtocol;
   BOOL _nodeConformsToRangeModeProtocol;
+  UIEdgeInsets _fallbackAdditionalSafeAreaInsets;
 }
 
 - (instancetype)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -74,10 +66,14 @@
   if (_node == nil) {
     return;
   }
+
+  _node.viewControllerRoot = YES;
   
   _selfConformsToRangeModeProtocol = [self conformsToProtocol:@protocol(ASRangeControllerUpdateRangeProtocol)];
   _nodeConformsToRangeModeProtocol = [_node conformsToProtocol:@protocol(ASRangeControllerUpdateRangeProtocol)];
   _automaticallyAdjustRangeModeBasedOnViewEvents = _selfConformsToRangeModeProtocol || _nodeConformsToRangeModeProtocol;
+
+  _fallbackAdditionalSafeAreaInsets = UIEdgeInsetsZero;
   
   // In case the node will get loaded
   if (_node.nodeLoaded) {
@@ -97,7 +93,7 @@
 
 - (void)dealloc
 {
-  ASPerformBackgroundDeallocation(_node);
+  ASPerformBackgroundDeallocation(&_node);
 }
 
 - (void)loadView
@@ -147,12 +143,9 @@
       [self propagateNewTraitCollection:traitCollection];
     }];
   } else {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     // Call layoutThatFits: to let the node prepare for a layout that will happen shortly in the layout pass of the view.
     // If the node's constrained size didn't change between the last layout pass it's a no-op
     [_node layoutThatFits:[self nodeConstrainedSize]];
-#pragma clang diagnostic pop
   }
 }
 
@@ -163,13 +156,31 @@
     [_node recursivelyEnsureDisplaySynchronously:YES];
   }
   [super viewDidLayoutSubviews];
+
+  if (!AS_AT_LEAST_IOS11) {
+    [self _updateNodeFallbackSafeArea];
+  }
+}
+
+- (void)_updateNodeFallbackSafeArea
+{
+  UIEdgeInsets safeArea = UIEdgeInsetsMake(self.topLayoutGuide.length, 0, self.bottomLayoutGuide.length, 0);
+  UIEdgeInsets additionalInsets = self.additionalSafeAreaInsets;
+
+  safeArea = ASConcatInsets(safeArea, additionalInsets);
+
+  _node.fallbackSafeAreaInsets = safeArea;
 }
 
 ASVisibilityDidMoveToParentViewController;
 
 - (void)viewWillAppear:(BOOL)animated
 {
+  as_activity_create_for_scope("ASViewController will appear");
+  as_log_debug(ASNodeLog(), "View controller %@ will appear", self);
+
   [super viewWillAppear:animated];
+
   _ensureDisplayed = YES;
 
   // A layout pass is forced this early to get nodes like ASCollectionNode, ASTableNode etc.
@@ -191,7 +202,7 @@ ASVisibilityDepthImplementation;
 - (void)visibilityDepthDidChange
 {
   ASLayoutRangeMode rangeMode = ASLayoutRangeModeForVisibilityDepth(self.visibilityDepth);
-#if AS_LOG_VISIBILITY_CHANGES
+#if ASEnableVerboseLogging
   NSString *rangeModeString;
   switch (rangeMode) {
     case ASLayoutRangeModeMinimum:
@@ -213,7 +224,7 @@ ASVisibilityDepthImplementation;
     default:
       break;
   }
-  NSLog(@"Updating visibility of:%@ to: %@ (visibility depth: %d)", self, rangeModeString, self.visibilityDepth);
+  as_log_verbose(ASNodeLog(), "Updating visibility of %@ to: %@ (visibility depth: %zd)", self, rangeModeString, self.visibilityDepth);
 #endif
   [self updateCurrentRangeModeWithModeIfPossible:rangeMode];
 }
@@ -264,6 +275,25 @@ ASVisibilityDepthImplementation;
   return _node.interfaceState;
 }
 
+- (UIEdgeInsets)additionalSafeAreaInsets
+{
+  if (AS_AVAILABLE_IOS(11.0)) {
+    return super.additionalSafeAreaInsets;
+  }
+
+  return _fallbackAdditionalSafeAreaInsets;
+}
+
+- (void)setAdditionalSafeAreaInsets:(UIEdgeInsets)additionalSafeAreaInsets
+{
+  if (AS_AVAILABLE_IOS(11.0)) {
+    [super setAdditionalSafeAreaInsets:additionalSafeAreaInsets];
+  } else {
+    _fallbackAdditionalSafeAreaInsets = additionalSafeAreaInsets;
+    [self _updateNodeFallbackSafeArea];
+  }
+}
+
 #pragma mark - ASTraitEnvironment
 
 - (ASPrimitiveTraitCollection)primitiveTraitCollectionForUITraitCollection:(UITraitCollection *)traitCollection
@@ -284,6 +314,8 @@ ASVisibilityDepthImplementation;
   ASPrimitiveTraitCollection oldTraitCollection = self.node.primitiveTraitCollection;
   
   if (ASPrimitiveTraitCollectionIsEqualToASPrimitiveTraitCollection(traitCollection, oldTraitCollection) == NO) {
+    as_activity_scope_verbose(as_activity_create("Propagate ASViewController trait collection", AS_ACTIVITY_CURRENT, OS_ACTIVITY_FLAG_DEFAULT));
+    as_log_debug(ASNodeLog(), "Propagating new traits for %@: %@", self, NSStringFromASPrimitiveTraitCollection(traitCollection));
     self.node.primitiveTraitCollection = traitCollection;
     
     NSArray<id<ASLayoutElement>> *children = [self.node sublayoutElements];
@@ -291,12 +323,10 @@ ASVisibilityDepthImplementation;
       ASTraitCollectionPropagateDown(child, traitCollection);
     }
     
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
     // Once we've propagated all the traits, layout this node.
     // Remeasure the node with the latest constrained size – old constrained size may be incorrect.
+    as_activity_scope_verbose(as_activity_create("Layout ASViewController node with new traits", AS_ACTIVITY_CURRENT, OS_ACTIVITY_FLAG_DEFAULT));
     [_node layoutThatFits:[self nodeConstrainedSize]];
-#pragma clang diagnostic pop
   }
 }
 

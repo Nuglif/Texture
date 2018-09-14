@@ -2,28 +2,20 @@
 //  ASDisplayNode+Yoga.mm
 //  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
-//
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASAvailability.h>
 
 #if YOGA /* YOGA */
 
-#import <AsyncDisplayKit/ASYogaLayoutSpec.h>
+#import <AsyncDisplayKit/_ASDisplayViewAccessiblity.h>
 #import <AsyncDisplayKit/ASYogaUtilities.h>
 #import <AsyncDisplayKit/ASDisplayNode+Beta.h>
 #import <AsyncDisplayKit/ASDisplayNode+FrameworkPrivate.h>
-#import <AsyncDisplayKit/ASDisplayNode+FrameworkSubclasses.h>
+#import <AsyncDisplayKit/ASDisplayNode+Subclasses.h>
 #import <AsyncDisplayKit/ASDisplayNodeInternal.h>
 #import <AsyncDisplayKit/ASLayout.h>
 
@@ -31,24 +23,16 @@
 
 #pragma mark - ASDisplayNode+Yoga
 
-#if YOGA_TREE_CONTIGUOUS
-
 @interface ASDisplayNode (YogaInternal)
 @property (nonatomic, weak) ASDisplayNode *yogaParent;
 - (ASSizeRange)_locked_constrainedSizeForLayoutPass;
 @end
 
-@interface ASLayout (YogaInternal)
-@property (nonatomic, getter=isFlattened) BOOL flattened;
-@end
-
-#endif /* YOGA_TREE_CONTIGUOUS */
-
 @implementation ASDisplayNode (Yoga)
 
 - (void)setYogaChildren:(NSArray *)yogaChildren
 {
-  for (ASDisplayNode *child in _yogaChildren) {
+  for (ASDisplayNode *child in [_yogaChildren copy]) {
     // Make sure to un-associate the YGNodeRef tree before replacing _yogaChildren
     // If this becomes a performance bottleneck, it can be optimized by not doing the NSArray removals here.
     [self removeYogaChild:child];
@@ -66,37 +50,7 @@
 
 - (void)addYogaChild:(ASDisplayNode *)child
 {
-  if (child == nil) {
-    return;
-  }
-  if (_yogaChildren == nil) {
-    _yogaChildren = [NSMutableArray array];
-  }
-
-  // Clean up state in case this child had another parent.
-  [self removeYogaChild:child];
-
-  BOOL hadZeroChildren = (_yogaChildren.count == 0);
-
-  [_yogaChildren addObject:child];
-
-#if YOGA_TREE_CONTIGUOUS
-  // Ensure any measure function is removed before inserting the YGNodeRef child.
-  if (hadZeroChildren) {
-    [self updateYogaMeasureFuncIfNeeded];
-  }
-  // YGNodeRef insertion is done in setParent:
-  child.yogaParent = self;
-#else
-  // When using non-contiguous Yoga layout, each level in the node hierarchy independently uses an ASYogaLayoutSpec
-  __weak ASDisplayNode *weakSelf = self;
-  self.layoutSpecBlock = ^ASLayoutSpec * _Nonnull(__kindof ASDisplayNode * _Nonnull node, ASSizeRange constrainedSize) {
-    ASYogaLayoutSpec *spec = [[ASYogaLayoutSpec alloc] init];
-    spec.rootNode = weakSelf;
-    spec.children = weakSelf.yogaChildren;
-    return spec;
-  };
-#endif
+  [self insertYogaChild:child atIndex:_yogaChildren.count];
 }
 
 - (void)removeYogaChild:(ASDisplayNode *)child
@@ -105,34 +59,37 @@
     return;
   }
   
-  BOOL hadChildren = (_yogaChildren.count > 0);
   [_yogaChildren removeObjectIdenticalTo:child];
 
-#if YOGA_TREE_CONTIGUOUS
   // YGNodeRef removal is done in setParent:
   child.yogaParent = nil;
-  // Ensure any measure function is re-added after removing the YGNodeRef child.
-  if (hadChildren && _yogaChildren.count == 0) {
-    [self updateYogaMeasureFuncIfNeeded];
+}
+
+- (void)insertYogaChild:(ASDisplayNode *)child atIndex:(NSUInteger)index
+{
+  if (child == nil) {
+    return;
   }
-#else
-  if (_yogaChildren.count == 0) {
-    self.layoutSpecBlock = nil;
+  if (_yogaChildren == nil) {
+    _yogaChildren = [[NSMutableArray alloc] init];
   }
-#endif
+
+  // Clean up state in case this child had another parent.
+  [self removeYogaChild:child];
+
+  [_yogaChildren insertObject:child atIndex:index];
+
+  // YGNodeRef insertion is done in setParent:
+  child.yogaParent = self;
 }
 
 - (void)semanticContentAttributeDidChange:(UISemanticContentAttribute)attribute
 {
-  if (AS_AT_LEAST_IOS9) {
-    UIUserInterfaceLayoutDirection layoutDirection =
-    [UIView userInterfaceLayoutDirectionForSemanticContentAttribute:attribute];
-    self.style.direction = (layoutDirection == UIUserInterfaceLayoutDirectionLeftToRight
-                            ? YGDirectionLTR : YGDirectionRTL);
-  }
+  UIUserInterfaceLayoutDirection layoutDirection =
+  [UIView userInterfaceLayoutDirectionForSemanticContentAttribute:attribute];
+  self.style.direction = (layoutDirection == UIUserInterfaceLayoutDirectionLeftToRight
+                          ? YGDirectionLTR : YGDirectionRTL);
 }
-
-#if YOGA_TREE_CONTIGUOUS /* YOGA_TREE_CONTIGUOUS */
 
 - (void)setYogaParent:(ASDisplayNode *)yogaParent
 {
@@ -171,6 +128,7 @@
 - (void)setYogaLayoutInProgress:(BOOL)yogaLayoutInProgress
 {
   setFlag(YogaLayoutInProgress, yogaLayoutInProgress);
+  [self updateYogaMeasureFuncIfNeeded];
 }
 
 - (BOOL)yogaLayoutInProgress
@@ -190,6 +148,8 @@
 
 - (void)setupYogaCalculatedLayout
 {
+  ASLockScopeSelf();
+
   YGNodeRef yogaNode = self.style.yogaNode;
   uint32_t childCount = YGNodeGetChildCount(yogaNode);
   ASDisplayNodeAssert(childCount == self.yogaChildren.count,
@@ -197,32 +157,92 @@
 
   NSMutableArray *sublayouts = [NSMutableArray arrayWithCapacity:childCount];
   for (ASDisplayNode *subnode in self.yogaChildren) {
-    ASLayout *sublayout = [subnode layoutForYogaNode];
-    sublayout.flattened = YES;
-    [sublayouts addObject:sublayout];
+    [sublayouts addObject:[subnode layoutForYogaNode]];
   }
 
   // The layout for self should have position CGPointNull, but include the calculated size.
   CGSize size = CGSizeMake(YGNodeLayoutGetWidth(yogaNode), YGNodeLayoutGetHeight(yogaNode));
   ASLayout *layout = [ASLayout layoutWithLayoutElement:self size:size sublayouts:sublayouts];
 
-  self.yogaCalculatedLayout = layout;
+#if ASDISPLAYNODE_ASSERTIONS_ENABLED
+  // Assert that the sublayout is already flattened.
+  for (ASLayout *sublayout in layout.sublayouts) {
+    if (sublayout.sublayouts.count > 0 || ASDynamicCast(sublayout.layoutElement, ASDisplayNode) == nil) {
+      ASDisplayNodeAssert(NO, @"Yoga sublayout is not flattened! %@, %@", self, sublayout);
+    }
+  }
+#endif
+
+  // Because this layout won't go through the rest of the logic in calculateLayoutThatFits:, flatten it now.
+  layout = [layout filteredNodeLayoutTree];
+
+  if ([self.yogaCalculatedLayout isEqual:layout] == NO) {
+    self.yogaCalculatedLayout = layout;
+  } else {
+    layout = self.yogaCalculatedLayout;
+    ASYogaLog("-setupYogaCalculatedLayout: applying identical ASLayout: %@", layout);
+  }
+
+  // Setup _pendingDisplayNodeLayout to reference the Yoga-calculated ASLayout, *unless* we are a leaf node.
+  // Leaf yoga nodes may have their own .sublayouts, if they use a layout spec (such as ASButtonNode).
+  // Their _pending variable is set after passing the Yoga checks at the start of -calculateLayoutThatFits:
+
+  // For other Yoga nodes, there is no code that will set _pending unless we do it here. Why does it need to be set?
+  // When CALayer triggers the -[ASDisplayNode __layout] call, we will check if our current _pending layout
+  // has a size which matches our current bounds size. If it does, that layout will be used without recomputing it.
+
+  // NOTE: Yoga does not make the constrainedSize available to intermediate nodes in the tree (e.g. not root or leaves).
+  // Although the size range provided here is not accurate, this will only affect caching of calls to layoutThatFits:
+  // These calls will behave as if they are not cached, starting a new Yoga layout pass, but this will tap into Yoga's
+  // own internal cache.
+
+  if ([self shouldHaveYogaMeasureFunc] == NO) {
+    YGNodeRef parentNode = YGNodeGetParent(yogaNode);
+    CGSize parentSize = CGSizeZero;
+    if (parentNode) {
+      parentSize.width = YGNodeLayoutGetWidth(parentNode);
+      parentSize.height = YGNodeLayoutGetHeight(parentNode);
+    }
+    // For the root node in a Yoga tree, make sure to preserve the constrainedSize originally provided.
+    // This will be used for all relayouts triggered by children, since they escalate to root.
+    ASSizeRange range = parentNode ? ASSizeRangeUnconstrained : self.constrainedSizeForCalculatedLayout;
+    _pendingDisplayNodeLayout = std::make_shared<ASDisplayNodeLayout>(layout, range, parentSize, _layoutVersion);
+  }
+}
+
+- (BOOL)shouldHaveYogaMeasureFunc
+{
+  // Size calculation via calculateSizeThatFits: or layoutSpecThatFits:
+  // This will be used for ASTextNode, as well as any other node that has no Yoga children
+  BOOL isLeafNode = (self.yogaChildren.count == 0);
+  BOOL definesCustomLayout = [self implementsLayoutMethod];
+  return (isLeafNode && definesCustomLayout);
 }
 
 - (void)updateYogaMeasureFuncIfNeeded
 {
-  // Size calculation via calculateSizeThatFits: or layoutSpecThatFits:
-  // This will be used for ASTextNode, as well as any other node that has no Yoga children
-  id <ASLayoutElement> layoutElementToMeasure = (self.yogaChildren.count == 0 ? self : nil);
-  ASLayoutElementYogaUpdateMeasureFunc(self.style.yogaNode, layoutElementToMeasure);
+  // We set the measure func only during layout. Otherwise, a cycle is created:
+  // The YGNodeRef Context will retain the ASDisplayNode, which retains the style, which owns the YGNodeRef.
+  BOOL shouldHaveMeasureFunc = ([self shouldHaveYogaMeasureFunc] && checkFlag(YogaLayoutInProgress));
+
+  ASLayoutElementYogaUpdateMeasureFunc(self.style.yogaNode, shouldHaveMeasureFunc ? self : nil);
 }
 
 - (void)invalidateCalculatedYogaLayout
 {
-  // Yoga internally asserts that this method may only be called on nodes with a measurement function.
   YGNodeRef yogaNode = self.style.yogaNode;
-  if (yogaNode && YGNodeGetMeasureFunc(yogaNode)) {
+  if (yogaNode && [self shouldHaveYogaMeasureFunc]) {
+    // Yoga internally asserts that MarkDirty() may only be called on nodes with a measurement function.
+    BOOL needsTemporaryMeasureFunc = (YGNodeGetMeasureFunc(yogaNode) == NULL);
+    if (needsTemporaryMeasureFunc) {
+      ASDisplayNodeAssert(self.yogaLayoutInProgress == NO,
+                          @"shouldHaveYogaMeasureFunc == YES, and inside a layout pass, but no measure func pointer! %@", self);
+      YGNodeSetMeasureFunc(yogaNode, &ASLayoutElementYogaMeasureFunc);
+    }
     YGNodeMarkDirty(yogaNode);
+    if (needsTemporaryMeasureFunc) {
+      YGNodeSetMeasureFunc(yogaNode, NULL);
+    }
   }
   self.yogaCalculatedLayout = nil;
 }
@@ -232,25 +252,24 @@
   ASDisplayNode *yogaParent = self.yogaParent;
 
   if (yogaParent) {
-    ASYogaLog(@"ESCALATING to Yoga root: %@", self);
+    ASYogaLog("ESCALATING to Yoga root: %@", self);
     // TODO(appleguy): Consider how to get the constrainedSize for the yogaRoot when escalating manually.
     [yogaParent calculateLayoutFromYogaRoot:ASSizeRangeUnconstrained];
     return;
   }
 
-  ASDN::MutexLocker l(__instanceLock__);
+  ASLockScopeSelf();
 
   // Prepare all children for the layout pass with the current Yoga tree configuration.
   ASDisplayNodePerformBlockOnEveryYogaChild(self, ^(ASDisplayNode * _Nonnull node) {
     node.yogaLayoutInProgress = YES;
-    [node updateYogaMeasureFuncIfNeeded];
   });
 
   if (ASSizeRangeEqualToSizeRange(rootConstrainedSize, ASSizeRangeUnconstrained)) {
     rootConstrainedSize = [self _locked_constrainedSizeForLayoutPass];
   }
 
-  ASYogaLog(@"CALCULATING at Yoga root with constraint = {%@, %@}: %@",
+  ASYogaLog("CALCULATING at Yoga root with constraint = {%@, %@}: %@",
             NSStringFromCGSize(rootConstrainedSize.min), NSStringFromCGSize(rootConstrainedSize.max), self);
 
   YGNodeRef rootYogaNode = self.style.yogaNode;
@@ -268,6 +287,11 @@
                         yogaFloatForCGFloat(rootConstrainedSize.max.width),
                         yogaFloatForCGFloat(rootConstrainedSize.max.height),
                         YGDirectionInherit);
+
+  // Reset accessible elements, since layout may have changed.
+  ASPerformBlockOnMainThread(^{
+    [(_ASDisplayView *)self.view setAccessibilityElements:nil];
+  });
 
   ASDisplayNodePerformBlockOnEveryYogaChild(self, ^(ASDisplayNode * _Nonnull node) {
     [node setupYogaCalculatedLayout];
@@ -291,8 +315,6 @@
   }
 #endif /* YOGA_LAYOUT_LOGGING */
 }
-
-#endif /* YOGA_TREE_CONTIGUOUS */
 
 @end
 

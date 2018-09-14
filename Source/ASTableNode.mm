@@ -2,17 +2,9 @@
 //  ASTableNode.mm
 //  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
-//
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASTableNode.h>
@@ -36,14 +28,17 @@
 @interface _ASTablePendingState : NSObject
 @property (weak, nonatomic) id <ASTableDelegate>   delegate;
 @property (weak, nonatomic) id <ASTableDataSource> dataSource;
-@property (nonatomic, assign) ASLayoutRangeMode rangeMode;
-@property (nonatomic, assign) BOOL allowsSelection;
-@property (nonatomic, assign) BOOL allowsSelectionDuringEditing;
-@property (nonatomic, assign) BOOL allowsMultipleSelection;
-@property (nonatomic, assign) BOOL allowsMultipleSelectionDuringEditing;
-@property (nonatomic, assign) BOOL inverted;
-@property (nonatomic, assign) CGFloat leadingScreensForBatching;
-@property (nonatomic, assign) BOOL automaticallyAdjustsContentOffset;
+@property (nonatomic) ASLayoutRangeMode rangeMode;
+@property (nonatomic) BOOL allowsSelection;
+@property (nonatomic) BOOL allowsSelectionDuringEditing;
+@property (nonatomic) BOOL allowsMultipleSelection;
+@property (nonatomic) BOOL allowsMultipleSelectionDuringEditing;
+@property (nonatomic) BOOL inverted;
+@property (nonatomic) CGFloat leadingScreensForBatching;
+@property (nonatomic) UIEdgeInsets contentInset;
+@property (nonatomic) CGPoint contentOffset;
+@property (nonatomic) BOOL animatesContentOffset;
+@property (nonatomic) BOOL automaticallyAdjustsContentOffset;
 @end
 
 @implementation _ASTablePendingState
@@ -58,6 +53,9 @@
     _allowsMultipleSelectionDuringEditing = NO;
     _inverted = NO;
     _leadingScreensForBatching = 2;
+    _contentInset = UIEdgeInsetsZero;
+    _contentOffset = CGPointZero;
+    _animatesContentOffset = NO;
     _automaticallyAdjustsContentOffset = NO;
   }
   return self;
@@ -73,7 +71,7 @@
   id<ASBatchFetchingDelegate> _batchFetchingDelegate;
 }
 
-@property (nonatomic, strong) _ASTablePendingState *pendingState;
+@property (nonatomic) _ASTablePendingState *pendingState;
 @end
 
 @implementation ASTableNode
@@ -98,6 +96,18 @@
   return [self initWithStyle:UITableViewStylePlain];
 }
 
+#if ASDISPLAYNODE_ASSERTIONS_ENABLED
+- (void)dealloc
+{
+  if (self.nodeLoaded) {
+    __weak UIView *view = self.view;
+    ASPerformBlockOnMainThread(^{
+      ASDisplayNodeCAssertNil(view.superview, @"Node's view should be removed from hierarchy.");
+    });
+  }
+}
+#endif
+
 #pragma mark ASDisplayNode
 
 - (void)didLoad
@@ -109,17 +119,21 @@
 
   if (_pendingState) {
     _ASTablePendingState *pendingState = _pendingState;
-    self.pendingState    = nil;
-    view.asyncDelegate   = pendingState.delegate;
-    view.asyncDataSource = pendingState.dataSource;
-    view.inverted        = pendingState.inverted;
-    view.allowsSelection = pendingState.allowsSelection;
-    view.allowsSelectionDuringEditing = pendingState.allowsSelectionDuringEditing;
-    view.allowsMultipleSelection = pendingState.allowsMultipleSelection;
+    view.asyncDelegate                        = pendingState.delegate;
+    view.asyncDataSource                      = pendingState.dataSource;
+    view.inverted                             = pendingState.inverted;
+    view.allowsSelection                      = pendingState.allowsSelection;
+    view.allowsSelectionDuringEditing         = pendingState.allowsSelectionDuringEditing;
+    view.allowsMultipleSelection              = pendingState.allowsMultipleSelection;
     view.allowsMultipleSelectionDuringEditing = pendingState.allowsMultipleSelectionDuringEditing;
+    view.contentInset                         = pendingState.contentInset;
+    self.pendingState                         = nil;
+    
     if (pendingState.rangeMode != ASLayoutRangeModeUnspecified) {
       [view.rangeController updateCurrentRangeWithMode:pendingState.rangeMode];
     }
+
+    [view setContentOffset:pendingState.contentOffset animated:pendingState.animatesContentOffset];
   }
 }
 
@@ -142,10 +156,10 @@
 
 - (void)didEnterPreloadState
 {
-  // Intentionally allocate the view here so that super will trigger a layout pass on it which in turn will trigger the intial data load.
-  // We can get rid of this call later when ASDataController, ASRangeController and ASCollectionLayout can operate without the view.
-  [self view];
   [super didEnterPreloadState];
+  // Intentionally allocate the view here and trigger a layout pass on it, which in turn will trigger the intial data load.
+  // We can get rid of this call later when ASDataController, ASRangeController and ASCollectionLayout can operate without the view.
+  [[self view] layoutIfNeeded];
 }
 
 #if ASRangeControllerLoggingEnabled
@@ -229,6 +243,54 @@
     return pendingState.leadingScreensForBatching;
   } else {
     return self.view.leadingScreensForBatching;
+  }
+}
+
+- (void)setContentInset:(UIEdgeInsets)contentInset
+{
+  _ASTablePendingState *pendingState = self.pendingState;
+  if (pendingState) {
+    pendingState.contentInset = contentInset;
+  } else {
+    ASDisplayNodeAssert(self.nodeLoaded, @"ASTableNode should be loaded if pendingState doesn't exist");
+    self.view.contentInset = contentInset;
+  }
+}
+
+- (UIEdgeInsets)contentInset
+{
+  _ASTablePendingState *pendingState = self.pendingState;
+  if (pendingState) {
+    return pendingState.contentInset;
+  } else {
+    return self.view.contentInset;
+  }
+}
+
+- (void)setContentOffset:(CGPoint)contentOffset
+{
+  [self setContentOffset:contentOffset animated:NO];
+}
+
+- (void)setContentOffset:(CGPoint)contentOffset animated:(BOOL)animated
+{
+  _ASTablePendingState *pendingState = self.pendingState;
+  if (pendingState) {
+    pendingState.contentOffset = contentOffset;
+    pendingState.animatesContentOffset = animated;
+  } else {
+    ASDisplayNodeAssert(self.nodeLoaded, @"ASTableNode should be loaded if pendingState doesn't exist");
+    [self.view setContentOffset:contentOffset animated:animated];
+  }
+}
+
+- (CGPoint)contentOffset
+{
+  _ASTablePendingState *pendingState = self.pendingState;
+  if (pendingState) {
+    return pendingState.contentOffset;
+  } else {
+    return self.view.contentOffset;
   }
 }
 
@@ -701,12 +763,34 @@ ASLayoutElementCollectionTableSetTraitCollection(_environmentStateLock)
   }
 }
 
-- (void)waitUntilAllUpdatesAreCommitted
+- (BOOL)isProcessingUpdates
+{
+  return (self.nodeLoaded ? [self.view isProcessingUpdates] : NO);
+}
+
+- (void)onDidFinishProcessingUpdates:(void (^)())completion
+{
+  if (!completion) {
+    return;
+  }
+  if (!self.nodeLoaded) {
+    completion();
+  } else {
+    [self.view onDidFinishProcessingUpdates:completion];
+  }
+}
+
+- (void)waitUntilAllUpdatesAreProcessed
 {
   ASDisplayNodeAssertMainThread();
   if (self.nodeLoaded) {
     [self.view waitUntilAllUpdatesAreCommitted];
   }
+}
+
+- (void)waitUntilAllUpdatesAreCommitted
+{
+  [self waitUntilAllUpdatesAreProcessed];
 }
 
 #pragma mark - Debugging (Private)

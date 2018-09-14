@@ -2,17 +2,9 @@
 //  ASMutableElementMap.m
 //  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
-//
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import "ASMutableElementMap.h"
@@ -48,7 +40,7 @@ typedef NSMutableDictionary<NSString *, NSMutableDictionary<NSIndexPath *, ASCol
   return [[ASElementMap alloc] initWithSections:_sections items:_sectionsOfItems supplementaryElements:_supplementaryElements];
 }
 
-- (void)removeAllSectionContexts
+- (void)removeAllSections
 {
   [_sections removeAllObjects];
 }
@@ -63,9 +55,14 @@ typedef NSMutableDictionary<NSString *, NSMutableDictionary<NSIndexPath *, ASCol
   ASDeleteElementsInTwoDimensionalArrayAtIndexPaths(_sectionsOfItems, indexPaths);
 }
 
-- (void)removeSectionContextsAtIndexes:(NSIndexSet *)indexes
+- (void)removeSectionsAtIndexes:(NSIndexSet *)indexes
 {
   [_sections removeObjectsAtIndexes:indexes];
+}
+
+- (void)removeSupplementaryElementsAtIndexPaths:(NSArray<NSIndexPath *> *)indexPaths kind:(NSString *)kind
+{
+  [_supplementaryElements[kind] removeObjectsForKeys:indexPaths];
 }
 
 - (void)removeAllElements
@@ -79,17 +76,10 @@ typedef NSMutableDictionary<NSString *, NSMutableDictionary<NSIndexPath *, ASCol
   [_sectionsOfItems removeObjectsAtIndexes:itemSections];
 }
 
-- (void)removeSupplementaryElementsInSections:(NSIndexSet *)sections
-{
-  [_supplementaryElements enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSMutableDictionary<NSIndexPath *,ASCollectionElement *> * _Nonnull supplementariesForKind, BOOL * _Nonnull stop) {
-    [supplementariesForKind removeObjectsForKeys:[sections as_filterIndexPathsBySection:supplementariesForKind]];
-  }];
-}
-
 - (void)insertEmptySectionsOfItemsAtIndexes:(NSIndexSet *)sections
 {
   [sections enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL * _Nonnull stop) {
-    [_sectionsOfItems insertObject:[NSMutableArray array] atIndex:idx];
+    [_sectionsOfItems insertObject:[[NSMutableArray alloc] init]  atIndex:idx];
   }];
 }
 
@@ -101,18 +91,50 @@ typedef NSMutableDictionary<NSString *, NSMutableDictionary<NSIndexPath *, ASCol
   } else {
     NSMutableDictionary *supplementariesForKind = _supplementaryElements[kind];
     if (supplementariesForKind == nil) {
-      supplementariesForKind = [NSMutableDictionary dictionary];
+      supplementariesForKind = [[NSMutableDictionary alloc] init];
       _supplementaryElements[kind] = supplementariesForKind;
     }
     supplementariesForKind[indexPath] = element;
   }
 }
 
+- (void)migrateSupplementaryElementsWithSectionMapping:(ASIntegerMap *)mapping
+{
+  // Fast-path, no section changes.
+  if (mapping == ASIntegerMap.identityMap) {
+    return;
+  }
+
+  // For each element kind,
+  [_supplementaryElements enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSMutableDictionary<NSIndexPath *,ASCollectionElement *> * _Nonnull supps, BOOL * _Nonnull stop) {
+    
+    // For each index path of that kind, move entries into a new dictionary.
+    // Note: it's tempting to update the dictionary in-place but because of the likely collision between old and new index paths,
+    // subtle bugs are possible. Note that this process is rare (only on section-level updates),
+    // that this work is done off-main, and that the typical supplementary element use case is just 1-per-section (header).
+    NSMutableDictionary *newSupps = [[NSMutableDictionary alloc] init];
+    [supps enumerateKeysAndObjectsUsingBlock:^(NSIndexPath * _Nonnull oldIndexPath, ASCollectionElement * _Nonnull obj, BOOL * _Nonnull stop) {
+      NSInteger oldSection = oldIndexPath.section;
+      NSInteger newSection = [mapping integerForKey:oldSection];
+      
+      if (oldSection == newSection) {
+        // Index path stayed the same, just copy it over.
+        newSupps[oldIndexPath] = obj;
+      } else if (newSection != NSNotFound) {
+        // Section index changed, move it.
+        NSIndexPath *newIndexPath = [NSIndexPath indexPathForItem:oldIndexPath.item inSection:newSection];
+        newSupps[newIndexPath] = obj;
+      }
+    }];
+    [supps setDictionary:newSupps];
+  }];
+}
+
 #pragma mark - Helpers
 
 + (ASMutableSupplementaryElementDictionary *)deepMutableCopyOfElementsDictionary:(ASSupplementaryElementDictionary *)originalDict
 {
-  NSMutableDictionary *deepCopy = [NSMutableDictionary dictionaryWithCapacity:originalDict.count];
+  NSMutableDictionary *deepCopy = [[NSMutableDictionary alloc] initWithCapacity:originalDict.count];
   [originalDict enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSDictionary<NSIndexPath *,ASCollectionElement *> * _Nonnull obj, BOOL * _Nonnull stop) {
     deepCopy[key] = [obj mutableCopy];
   }];

@@ -2,17 +2,9 @@
 //  ASLayoutSpec.mm
 //  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
-//
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import <AsyncDisplayKit/ASLayoutSpec.h>
@@ -20,6 +12,7 @@
 
 #import <AsyncDisplayKit/ASLayoutSpec+Subclasses.h>
 
+#import <AsyncDisplayKit/ASCollections.h>
 #import <AsyncDisplayKit/ASLayoutElementStylePrivate.h>
 #import <AsyncDisplayKit/ASTraitCollection.h>
 #import <AsyncDisplayKit/ASEqualityHelpers.h>
@@ -34,17 +27,6 @@
 // Dynamic properties for ASLayoutElements
 @dynamic layoutElementType;
 @synthesize debugName = _debugName;
-
-#pragma mark - Class
-
-+ (void)initialize
-{
-  [super initialize];
-  if (self != [ASLayoutSpec class]) {
-    ASDisplayNodeAssert(!ASSubclassOverridesSelector([ASLayoutSpec class], self, @selector(measureWithSizeRange:)), @"Subclass %@ must not override measureWithSizeRange: method. Instead override calculateLayoutThatFits:", NSStringFromClass(self));
-  }
-}
-
 
 #pragma mark - Lifecycle
 
@@ -67,6 +49,11 @@
 }
 
 - (BOOL)canLayoutAsynchronous
+{
+  return YES;
+}
+
+- (BOOL)implementsLayoutMethod
 {
   return YES;
 }
@@ -162,11 +149,28 @@ ASLayoutElementLayoutCalculationDefaults
 }
 
 ASPrimitiveTraitCollectionDefaults
-ASPrimitiveTraitCollectionDeprecatedImplementation
 
 #pragma mark - ASLayoutElementStyleExtensibility
 
 ASLayoutElementStyleExtensibilityForwarding
+
+#pragma mark - ASDescriptionProvider
+
+- (NSMutableArray<NSDictionary *> *)propertiesForDescription
+{
+  let result = [NSMutableArray<NSDictionary *> array];
+  if (NSArray *children = self.children) {
+    // Use tiny descriptions because these trees can get nested very deep.
+    let tinyDescriptions = ASArrayByFlatMapping(children, id object, ASObjectDescriptionMakeTiny(object));
+    [result addObject:@{ @"children": tinyDescriptions }];
+  }
+  return result;
+}
+
+- (NSString *)description
+{
+  return ASObjectDescriptionMake(self, [self propertiesForDescription]);
+}
 
 #pragma mark - Framework Private
 
@@ -231,13 +235,32 @@ ASLayoutElementStyleExtensibilityForwarding
   }
 }
 
+#pragma mark - ASLayoutElementAsciiArtProtocol
+
+- (NSString *)asciiArtString
+{
+  NSArray *children = self.children.count < 2 && self.child ? @[self.child] : self.children;
+  return [ASLayoutSpec asciiArtStringForChildren:children parentName:[self asciiArtName]];
+}
+
+- (NSString *)asciiArtName
+{
+  NSMutableString *result = [NSMutableString stringWithCString:object_getClassName(self) encoding:NSASCIIStringEncoding];
+  if (_debugName) {
+    [result appendFormat:@" (%@)", _debugName];
+  }
+  return result;
+}
+
+ASSynthesizeLockingMethodsWithMutex(__instanceLock__)
+
 @end
 
 #pragma mark - ASWrapperLayoutSpec
 
 @implementation ASWrapperLayoutSpec
 
-+ (instancetype)wrapperWithLayoutElement:(id<ASLayoutElement>)layoutElement
++ (instancetype)wrapperWithLayoutElement:(id<ASLayoutElement>)layoutElement NS_RETURNS_RETAINED
 {
   return [[self alloc] initWithLayoutElement:layoutElement];
 }
@@ -251,7 +274,7 @@ ASLayoutElementStyleExtensibilityForwarding
   return self;
 }
 
-+ (instancetype)wrapperWithLayoutElements:(NSArray<id<ASLayoutElement>> *)layoutElements
++ (instancetype)wrapperWithLayoutElements:(NSArray<id<ASLayoutElement>> *)layoutElements NS_RETURNS_RETAINED
 {
   return [[self alloc] initWithLayoutElements:layoutElements];
 }
@@ -290,7 +313,7 @@ ASLayoutElementStyleExtensibilityForwarding
 
 @implementation ASLayoutSpec (Debugging)
 
-#pragma mark - ASLayoutElementAsciiArtProtocol
+#pragma mark - ASCII Art Helpers
 
 + (NSString *)asciiArtStringForChildren:(NSArray *)children parentName:(NSString *)parentName direction:(ASStackLayoutDirection)direction
 {
@@ -311,28 +334,5 @@ ASLayoutElementStyleExtensibilityForwarding
 {
   return [self asciiArtStringForChildren:children parentName:parentName direction:ASStackLayoutDirectionHorizontal];
 }
-
-- (NSString *)asciiArtString
-{
-  NSArray *children = self.children.count < 2 && self.child ? @[self.child] : self.children;
-  return [ASLayoutSpec asciiArtStringForChildren:children parentName:[self asciiArtName]];
-}
-
-- (NSString *)asciiArtName
-{
-  NSString *string = NSStringFromClass([self class]);
-  if (_debugName) {
-    string = [string stringByAppendingString:[NSString stringWithFormat:@" (debugName = %@)",_debugName]];
-  }
-  return string;
-}
-
-@end
-
-#pragma mark - ASLayoutSpec (Deprecated)
-
-@implementation ASLayoutSpec (Deprecated)
-
-ASLayoutElementStyleForwarding
 
 @end

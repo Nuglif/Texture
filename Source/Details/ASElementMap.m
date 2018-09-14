@@ -2,17 +2,9 @@
 //  ASElementMap.m
 //  Texture
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
-//
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) 2017-present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  Copyright (c) Facebook, Inc. and its affiliates.  All rights reserved.
+//  Changes after 4/13/2017 are: Copyright (c) Pinterest, Inc.  All rights reserved.
+//  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
 #import "ASElementMap.h"
@@ -26,15 +18,15 @@
 
 @interface ASElementMap () <ASDescriptionProvider>
 
-@property (nonatomic, strong, readonly) NSArray<ASSection *> *sections;
+@property (nonatomic, readonly) NSArray<ASSection *> *sections;
 
 // Element -> IndexPath
-@property (nonatomic, strong, readonly) NSMapTable<ASCollectionElement *, NSIndexPath *> *elementToIndexPathMap;
+@property (nonatomic, readonly) NSMapTable<ASCollectionElement *, NSIndexPath *> *elementToIndexPathMap;
 
 // The items, in a 2D array
-@property (nonatomic, strong, readonly) ASCollectionElementTwoDimensionalArray *sectionsOfItems;
+@property (nonatomic, readonly) ASCollectionElementTwoDimensionalArray *sectionsOfItems;
 
-@property (nonatomic, strong, readonly) ASSupplementaryElementDictionary *supplementaryElements;
+@property (nonatomic, readonly) ASSupplementaryElementDictionary *supplementaryElements;
 
 @end
 
@@ -47,6 +39,8 @@
 
 - (instancetype)initWithSections:(NSArray<ASSection *> *)sections items:(ASCollectionElementTwoDimensionalArray *)items supplementaryElements:(ASSupplementaryElementDictionary *)supplementaryElements
 {
+  NSCParameterAssert(items.count == sections.count);
+
   if (self = [super init]) {
     _sections = [sections copy];
     _sectionsOfItems = [[NSArray alloc] initWithArray:items copyItems:YES];
@@ -71,6 +65,11 @@
     }
   }
   return self;
+}
+
+- (NSUInteger)count
+{
+  return _elementToIndexPathMap.count;
 }
 
 - (NSArray<NSIndexPath *> *)itemIndexPaths
@@ -113,7 +112,7 @@
 
 - (nullable NSIndexPath *)indexPathForElement:(ASCollectionElement *)element
 {
-  return [_elementToIndexPathMap objectForKey:element];
+  return element ? [_elementToIndexPathMap objectForKey:element] : nil;
 }
 
 - (nullable NSIndexPath *)indexPathForElementIfCell:(ASCollectionElement *)element
@@ -157,8 +156,25 @@
 
 - (NSIndexPath *)convertIndexPath:(NSIndexPath *)indexPath fromMap:(ASElementMap *)map
 {
-  id element = [map elementForItemAtIndexPath:indexPath];
-  return [self indexPathForElement:element];
+  if (indexPath.item == NSNotFound) {
+    // Section index path
+    NSInteger result = [self convertSection:indexPath.section fromMap:map];
+    return (result != NSNotFound ? [NSIndexPath indexPathWithIndex:result] : nil);
+  } else {
+    // Item index path
+    ASCollectionElement *element = [map elementForItemAtIndexPath:indexPath];
+    return [self indexPathForElement:element];
+  }
+}
+
+- (NSInteger)convertSection:(NSInteger)sectionIndex fromMap:(ASElementMap *)map
+{
+  if (![map sectionIndexIsValid:sectionIndex assert:YES]) {
+    return NSNotFound;
+  }
+
+  ASSection *section = map.sections[sectionIndex];
+  return [_sections indexOfObjectIdenticalTo:section];
 }
 
 #pragma mark - NSCopying
@@ -181,6 +197,18 @@
 - (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id  _Nullable __unsafe_unretained [])buffer count:(NSUInteger)len
 {
   return [_elementToIndexPathMap countByEnumeratingWithState:state objects:buffer count:len];
+}
+
+- (NSString *)smallDescription
+{
+  NSMutableArray *sectionDescriptions = [NSMutableArray array];
+
+  NSUInteger i = 0;
+  for (NSArray *section in _sectionsOfItems) {
+    [sectionDescriptions addObject:[NSString stringWithFormat:@"<S%tu: %tu>", i, section.count]];
+    i++;
+  }
+  return ASObjectDescriptionMakeWithoutObject(@[ @{ @"itemCounts": sectionDescriptions }]);
 }
 
 #pragma mark - ASDescriptionProvider
@@ -206,9 +234,9 @@
 - (BOOL)sectionIndexIsValid:(NSInteger)section assert:(BOOL)assert
 {
   NSInteger sectionCount = _sectionsOfItems.count;
-  if (section >= sectionCount) {
+  if (section >= sectionCount || section < 0) {
     if (assert) {
-      ASDisplayNodeFailAssert(@"Invalid section index %zd when there are only %zd sections!", section, sectionCount);
+      ASDisplayNodeFailAssert(@"Invalid section index %ld when there are only %ld sections!", (long)section, (long)sectionCount);
     }
     return NO;
   } else {
@@ -234,9 +262,9 @@
 
   NSInteger itemCount = _sectionsOfItems[section].count;
   NSInteger item = indexPath.item;
-  if (item >= itemCount) {
+  if (item >= itemCount || item < 0) {
     if (assert) {
-      ASDisplayNodeFailAssert(@"Invalid item index %zd in section %zd which only has %zd items!", item, section, itemCount);
+      ASDisplayNodeFailAssert(@"Invalid item index %ld in section %ld which only has %ld items!", (long)item, (long)section, (long)itemCount);
     }
     return NO;
   }
