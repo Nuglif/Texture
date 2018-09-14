@@ -56,6 +56,7 @@ static NSString * const kRate = @"rate";
   } _delegateFlags;
   
   BOOL _shouldBePlaying;
+  BOOL _shouldSeekToLoopStart;
   
   BOOL _shouldAutorepeat;
   BOOL _shouldAutoplay;
@@ -71,6 +72,7 @@ static NSString * const kRate = @"rate";
   
   AVPlayerItem *_currentPlayerItem;
   AVPlayer *_player;
+  CMTimeRange _loopRange;
   
   id _timeObserver;
   int32_t _periodicTimeObserverTimescale;
@@ -102,7 +104,8 @@ static NSString * const kRate = @"rate";
   _periodicTimeObserverTimescale = 10000;
   [self addTarget:self action:@selector(tapped) forControlEvents:ASControlNodeEventTouchUpInside];
   _lastPlaybackTime = kCMTimeZero;
-  
+  _loopRange = kCMTimeRangeInvalid;
+
   NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
   [notificationCenter addObserver:self selector:@selector(applicationDidBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
   
@@ -136,6 +139,10 @@ static NSString * const kRate = @"rate";
 
   playerItem.videoComposition = _videoComposition;
   playerItem.audioMix = _audioMix;
+  playerItem.preferredForwardBufferDuration = CMTIME_IS_VALID(_loopRange.start) ? CMTimeGetSeconds(_loopRange.start) : 0.0;
+
+  _shouldSeekToLoopStart = CMTIMERANGE_IS_VALID(_loopRange);
+
   return playerItem;
 }
 
@@ -274,7 +281,8 @@ static NSString * const kRate = @"rate";
   ASVideoNode * __weak weakSelf = self;
   AVAsset *asset = self.asset;
 
-  [self imageAtTime:kCMTimeZero completionHandler:^(UIImage *image) {
+  CMTime time = CMTIME_IS_VALID(_loopRange.start) ? _loopRange.start : kCMTimeZero;
+  [self imageAtTime:time completionHandler:^(UIImage *image) {
     ASPerformBlockOnMainThread(^{
       // Ensure the asset hasn't changed since the image request was made
       if (ASAssetIsEqual(weakSelf.asset, asset)) {
@@ -310,6 +318,15 @@ static NSString * const kRate = @"rate";
   });
 }
 
+- (void)seekToLoopStart
+{
+  if (_shouldSeekToLoopStart) {
+    [_player seekToTime:_loopRange.start toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
+    _currentPlayerItem.preferredForwardBufferDuration = 0;
+    _shouldSeekToLoopStart = false;
+  }
+}
+
 - (void)setVideoPlaceholderImage:(UIImage *)image
 {
   NSString *gravity = self.gravity;
@@ -342,12 +359,14 @@ static NSString * const kRate = @"rate";
     } else if ([keyPath isEqualToString:kPlaybackLikelyToKeepUpKey]) {
       BOOL likelyToKeepUp = [change[NSKeyValueChangeNewKey] boolValue];
       if (likelyToKeepUp && self.playerState == ASVideoNodePlayerStatePlaying) {
+        [self seekToLoopStart];
         return;
       }
       if (!likelyToKeepUp) {
         self.playerState = ASVideoNodePlayerStateLoading;
       } else if (self.playerState != ASVideoNodePlayerStateFinished) {
         self.playerState = ASVideoNodePlayerStatePlaybackLikelyToKeepUpButNotPlaying;
+        [self seekToLoopStart];
       }
       if (_shouldBePlaying && (_shouldAggressivelyRecoverFromStall || likelyToKeepUp) && ASInterfaceStateIncludesVisible(self.interfaceState)) {
         if (self.playerState == ASVideoNodePlayerStateLoading && _delegateFlags.delegateVideoNodeDidRecoverFromStall) {
@@ -405,7 +424,7 @@ static NSString * const kRate = @"rate";
       [self.delegate videoNodeDidStartInitialLoading:self];
   }
   
-  NSArray<NSString *> *requestedKeys = @[@"playable"];
+  NSArray<NSString *> *requestedKeys = @[@"playable", @"duration"];
   [asset loadValuesAsynchronouslyForKeys:requestedKeys completionHandler:^{
     ASPerformBlockOnMainThread(^{
       if (_delegateFlags.delegateVideoNodeDidFinishInitialLoading) {
@@ -418,14 +437,24 @@ static NSString * const kRate = @"rate";
 
 - (void)periodicTimeObserver:(CMTime)time
 {
+  BOOL didPlayToEnd = NO;
+  if (CMTIMERANGE_IS_VALID(_loopRange)) {
+    time = CMTimeSubtract(time, _loopRange.start);
+
+    didPlayToEnd = CMTIME_COMPARE_INLINE(time, >=, _loopRange.duration);
+  }
+
   NSTimeInterval timeInSeconds = CMTimeGetSeconds(time);
   if (timeInSeconds <= 0) {
     return;
   }
-  
+
   if (_delegateFlags.delegateVideoNodeDidPlayToTimeInterval) {
     [self.delegate videoNode:self didPlayToTimeInterval:timeInSeconds];
-    
+  }
+
+  if (didPlayToEnd) {
+    [self didPlayToEnd:nil];
   }
 }
 
@@ -583,6 +612,12 @@ static NSString * const kRate = @"rate";
   return _player;
 }
 
+- (CMTimeRange)loopRange
+{
+  ASLockScopeSelf();
+  return _loopRange;
+}
+
 - (AVPlayerLayer *)playerLayer
 {
   ASLockScopeSelf();
@@ -674,7 +709,6 @@ static NSString * const kRate = @"rate";
     [self setNeedsLayout];
   }
   
-  
   [_player play];
   _shouldBePlaying = YES;
 }
@@ -719,8 +753,9 @@ static NSString * const kRate = @"rate";
     [_playerNode removeFromSupernode];
     _playerNode = nil;
   }
-  
-  [_player seekToTime:kCMTimeZero];
+
+  CMTime seekToTime = CMTIMERANGE_IS_VALID(_loopRange) ? _loopRange.start : kCMTimeZero;
+  [_player seekToTime:seekToTime];
   [self pause];
 }
 
@@ -742,7 +777,10 @@ static NSString * const kRate = @"rate";
   }
 
   if (_shouldAutorepeat) {
-    [_player seekToTime:kCMTimeZero];
+    CMTime seekToTime = CMTIMERANGE_IS_VALID(_loopRange) ? _loopRange.start : kCMTimeZero;
+
+    [self pause];
+    [_player seekToTime:seekToTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero];
     [self play];
   } else {
     [self pause];
@@ -826,6 +864,12 @@ static NSString * const kRate = @"rate";
   }
 }
 
+- (void)setLoopRange:(CMTimeRange)loopRange
+{
+  ASLockScopeSelf();
+  _loopRange = loopRange;
+}
+
 - (BOOL)shouldBePlaying
 {
   ASLockScopeSelf();
@@ -850,3 +894,4 @@ static NSString * const kRate = @"rate";
 }
 
 @end
+

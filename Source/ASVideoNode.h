@@ -7,6 +7,7 @@
 //  Licensed under Apache 2.0: http://www.apache.org/licenses/LICENSE-2.0
 //
 
+#import <CoreMedia/CoreMedia.h>
 #import <AsyncDisplayKit/ASNetworkImageNode.h>
 
 @class AVAsset, AVPlayer, AVPlayerLayer, AVPlayerItem, AVVideoComposition, AVAudioMix;
@@ -66,6 +67,7 @@ NS_ASSUME_NONNULL_BEGIN
  */
 @property BOOL shouldAutoplay;
 @property BOOL shouldAutorepeat;
+@property (nonatomic, assign, readwrite) CMTimeRange loopRange;
 
 @property BOOL muted;
 @property BOOL shouldAggressivelyRecoverFromStall;
