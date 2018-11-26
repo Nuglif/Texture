@@ -144,6 +144,12 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)videoNode:(ASVideoNode *)videoNode didSetCurrentItem:(AVPlayerItem *)currentItem;
 /**
+ * @abstract Delegate method invoked when the AVPlayerLayer has been set up and can be accessed throught playerLayer.
+ * @param videoNode The videoNode.
+ * @param currentItem The AVPlayerItem that was constructed from the asset.
+ */
+- (void)videoNode:(ASVideoNode *)videoNode didSetPlayerLayer:(AVPlayerLayer *)playerLayer;
+/**
  * @abstract Delegate method invoked when the video node has recovered from the stall
  * @param videoNode The videoNode
  */

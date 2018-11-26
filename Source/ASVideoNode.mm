@@ -50,6 +50,7 @@ static NSString * const kRate = @"rate";
     unsigned int delegateVideoNodeDidStartInitialLoading:1;
     unsigned int delegateVideoNodeDidFinishInitialLoading:1;
     unsigned int delegateVideoNodeDidSetCurrentItem:1;
+    unsigned int delegateVideoNodeDidSetPlayerLayer:1;
     unsigned int delegateVideoNodeDidStallAtTimeInterval:1;
     unsigned int delegateVideoNodeDidRecoverFromStall:1;
     unsigned int delegateVideoNodeDidFailToLoadValueForKey:1;
@@ -639,6 +640,7 @@ static NSString * const kRate = @"rate";
     _delegateFlags.delegateVideoNodeDidStartInitialLoading = [delegate respondsToSelector:@selector(videoNodeDidStartInitialLoading:)];
     _delegateFlags.delegateVideoNodeDidFinishInitialLoading = [delegate respondsToSelector:@selector(videoNodeDidFinishInitialLoading:)];
     _delegateFlags.delegateVideoNodeDidSetCurrentItem = [delegate respondsToSelector:@selector(videoNode:didSetCurrentItem:)];
+    _delegateFlags.delegateVideoNodeDidSetPlayerLayer = [delegate respondsToSelector:@selector(videoNode:didSetPlayerLayer:)];
     _delegateFlags.delegateVideoNodeDidStallAtTimeInterval = [delegate respondsToSelector:@selector(videoNode:didStallAtTimeInterval:)];
     _delegateFlags.delegateVideoNodeDidRecoverFromStall = [delegate respondsToSelector:@selector(videoNodeDidRecoverFromStall:)];
     _delegateFlags.delegateVideoNodeDidFailToLoadValueForKey = [delegate respondsToSelector:@selector(videoNode:didFailToLoadValueForKey:asset:error:)];
@@ -704,6 +706,10 @@ static NSString * const kRate = @"rate";
     {
       ASUnlockScope(self);
       [self addSubnode:_playerNode];
+    }
+
+    if (_delegateFlags.delegateVideoNodeDidSetPlayerLayer) {
+      [self.delegate videoNode:self didSetPlayerLayer:self.playerLayer];
     }
 
     [self setNeedsLayout];
