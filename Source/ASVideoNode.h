@@ -85,6 +85,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol ASVideoNodeDelegate <ASNetworkImageNodeDelegate>
 @optional
+
+ - (AVPlayer *)playerForVideoNode:(ASVideoNode *)videoNode;
+
 /**
  * @abstract Delegate method invoked when the node's video has played to its end time.
  * @param videoNode The video node has played to its end time.

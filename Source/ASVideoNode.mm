@@ -51,6 +51,7 @@ static NSString * const kRate = @"rate";
     unsigned int delegateVideoNodeDidFinishInitialLoading:1;
     unsigned int delegateVideoNodeDidSetCurrentItem:1;
     unsigned int delegateVideoNodeDidSetPlayerLayer:1;
+    unsigned int delegateVideoNodeDidGetPlayer:1;
     unsigned int delegateVideoNodeDidStallAtTimeInterval:1;
     unsigned int delegateVideoNodeDidRecoverFromStall:1;
     unsigned int delegateVideoNodeDidFailToLoadValueForKey:1;
@@ -172,6 +173,8 @@ static NSString * const kRate = @"rate";
   
   if (_player != nil) {
     [_player replaceCurrentItemWithPlayerItem:playerItem];
+  } else if (_delegateFlags.delegateVideoNodeDidGetPlayer) {
+    self.player = [self.delegate playerForVideoNode:self];
   } else {
     self.player = [AVPlayer playerWithPlayerItem:playerItem];
   }
@@ -641,6 +644,7 @@ static NSString * const kRate = @"rate";
     _delegateFlags.delegateVideoNodeDidFinishInitialLoading = [delegate respondsToSelector:@selector(videoNodeDidFinishInitialLoading:)];
     _delegateFlags.delegateVideoNodeDidSetCurrentItem = [delegate respondsToSelector:@selector(videoNode:didSetCurrentItem:)];
     _delegateFlags.delegateVideoNodeDidSetPlayerLayer = [delegate respondsToSelector:@selector(videoNode:didSetPlayerLayer:)];
+    _delegateFlags.delegateVideoNodeDidGetPlayer = [delegate respondsToSelector:@selector(playerForVideoNode:)];
     _delegateFlags.delegateVideoNodeDidStallAtTimeInterval = [delegate respondsToSelector:@selector(videoNode:didStallAtTimeInterval:)];
     _delegateFlags.delegateVideoNodeDidRecoverFromStall = [delegate respondsToSelector:@selector(videoNodeDidRecoverFromStall:)];
     _delegateFlags.delegateVideoNodeDidFailToLoadValueForKey = [delegate respondsToSelector:@selector(videoNode:didFailToLoadValueForKey:asset:error:)];
