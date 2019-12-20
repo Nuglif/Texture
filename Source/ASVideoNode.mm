@@ -233,9 +233,12 @@ static NSString * const kRate = @"rate";
 
   __weak __typeof(self) weakSelf = self;
   _timeObserverInterval = CMTimeMake(1, _periodicTimeObserverTimescale);
-  _timeObserver = [player addPeriodicTimeObserverForInterval:_timeObserverInterval queue:NULL usingBlock:^(CMTime time){
-    [weakSelf periodicTimeObserver:time];
-  }];
+
+  dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+    _timeObserver = [player addPeriodicTimeObserverForInterval:_timeObserverInterval queue:NULL usingBlock:^(CMTime time){
+      [weakSelf periodicTimeObserver:time];
+    }];
+  });
 }
 
 - (void) removePlayerObservers:(AVPlayer *)player
