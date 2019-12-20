@@ -51,7 +51,7 @@ static NSString * const kRate = @"rate";
     unsigned int delegateVideoNodeDidFinishInitialLoading:1;
     unsigned int delegateVideoNodeDidSetCurrentItem:1;
     unsigned int delegateVideoNodeDidSetPlayerLayer:1;
-    unsigned int delegateVideoNodeDidGetPlayer:1;
+    unsigned int delegateVideoNodeDidPlayerWithPlayerItem:1;
     unsigned int delegateVideoNodeDidStallAtTimeInterval:1;
     unsigned int delegateVideoNodeDidRecoverFromStall:1;
     unsigned int delegateVideoNodeDidFailToLoadValueForKey:1;
@@ -173,8 +173,8 @@ static NSString * const kRate = @"rate";
   
   if (_player != nil) {
     [_player replaceCurrentItemWithPlayerItem:playerItem];
-  } else if (_delegateFlags.delegateVideoNodeDidGetPlayer) {
-    self.player = [self.delegate playerForVideoNode:self];
+  } else if (_delegateFlags.delegateVideoNodeDidPlayerWithPlayerItem) {
+    self.player = [self.delegate videoNode:self playerWidthPlayerItem:playerItem];
   } else {
     self.player = [AVPlayer playerWithPlayerItem:playerItem];
   }
