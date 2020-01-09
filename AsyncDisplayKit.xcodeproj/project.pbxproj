@@ -216,6 +216,9 @@
 		9F98C0261DBE29E000476D92 /* ASControlTargetAction.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9F98C0241DBDF2A300476D92 /* ASControlTargetAction.mm */; };
 		9F98C0271DBE29FC00476D92 /* ASControlTargetAction.h in Headers */ = {isa = PBXBuildFile; fileRef = 9F98C0231DBDF2A300476D92 /* ASControlTargetAction.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		A37320101C571B740011FC94 /* ASTextNode+Beta.h in Headers */ = {isa = PBXBuildFile; fileRef = A373200E1C571B050011FC94 /* ASTextNode+Beta.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		A494A7D523C7BD3600418EA3 /* PINOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A494A7D223C7BD3600418EA3 /* PINOperation.framework */; };
+		A494A7D723C7BD3600418EA3 /* PINCache.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A494A7D323C7BD3600418EA3 /* PINCache.framework */; };
+		A494A7D923C7BD3600418EA3 /* PINRemoteImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A494A7D423C7BD3600418EA3 /* PINRemoteImage.framework */; };
 		AC026B581BD3F61800BBC17E /* ASAbsoluteLayoutSpecSnapshotTests.mm in Sources */ = {isa = PBXBuildFile; fileRef = AC026B571BD3F61800BBC17E /* ASAbsoluteLayoutSpecSnapshotTests.mm */; };
 		AC026B701BD57DBF00BBC17E /* _ASHierarchyChangeSet.h in Headers */ = {isa = PBXBuildFile; fileRef = AC026B6D1BD57DBF00BBC17E /* _ASHierarchyChangeSet.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		AC026B721BD57DBF00BBC17E /* _ASHierarchyChangeSet.mm in Sources */ = {isa = PBXBuildFile; fileRef = AC026B6E1BD57DBF00BBC17E /* _ASHierarchyChangeSet.mm */; };
@@ -791,6 +794,9 @@
 		9F98C0241DBDF2A300476D92 /* ASControlTargetAction.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ASControlTargetAction.mm; sourceTree = "<group>"; };
 		A32FEDD31C501B6A004F642A /* ASTextKitFontSizeAdjuster.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ASTextKitFontSizeAdjuster.h; path = TextKit/ASTextKitFontSizeAdjuster.h; sourceTree = "<group>"; };
 		A373200E1C571B050011FC94 /* ASTextNode+Beta.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ASTextNode+Beta.h"; sourceTree = "<group>"; };
+		A494A7D223C7BD3600418EA3 /* PINOperation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PINOperation.framework; path = Carthage/Build/iOS/PINOperation.framework; sourceTree = "<group>"; };
+		A494A7D323C7BD3600418EA3 /* PINCache.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PINCache.framework; path = Carthage/Build/iOS/PINCache.framework; sourceTree = "<group>"; };
+		A494A7D423C7BD3600418EA3 /* PINRemoteImage.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PINRemoteImage.framework; path = Carthage/Build/iOS/PINRemoteImage.framework; sourceTree = "<group>"; };
 		AC026B571BD3F61800BBC17E /* ASAbsoluteLayoutSpecSnapshotTests.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; lineEnding = 0; path = ASAbsoluteLayoutSpecSnapshotTests.mm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		AC026B6D1BD57DBF00BBC17E /* _ASHierarchyChangeSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = _ASHierarchyChangeSet.h; sourceTree = "<group>"; };
 		AC026B6E1BD57DBF00BBC17E /* _ASHierarchyChangeSet.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = _ASHierarchyChangeSet.mm; sourceTree = "<group>"; };
@@ -1090,6 +1096,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CC36C19C218B847400232F23 /* CoreMedia.framework in Frameworks */,
+				A494A7D723C7BD3600418EA3 /* PINCache.framework in Frameworks */,
 				CC36C19A218B846F00232F23 /* CoreLocation.framework in Frameworks */,
 				CC36C198218B846300232F23 /* QuartzCore.framework in Frameworks */,
 				CC36C196218B845B00232F23 /* AVFoundation.framework in Frameworks */,
@@ -1098,7 +1105,9 @@
 				CC36C191218B841A00232F23 /* CoreText.framework in Frameworks */,
 				CC36C18F218B841600232F23 /* UIKit.framework in Frameworks */,
 				92DD2FE61BF4D05E0074C9DD /* MapKit.framework in Frameworks */,
+				A494A7D923C7BD3600418EA3 /* PINRemoteImage.framework in Frameworks */,
 				B350625E1B0111780018CF92 /* AssetsLibrary.framework in Frameworks */,
+				A494A7D523C7BD3600418EA3 /* PINOperation.framework in Frameworks */,
 				B350625D1B0111740018CF92 /* Photos.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1155,20 +1164,23 @@
 		058D09AE195D04C000B7D73C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				CC36C19B218B847400232F23 /* CoreMedia.framework */,
-				CC36C199218B846F00232F23 /* CoreLocation.framework */,
-				CC36C197218B846300232F23 /* QuartzCore.framework */,
+				051943121A1575630030A7D0 /* AssetsLibrary.framework */,
 				CC36C195218B845B00232F23 /* AVFoundation.framework */,
 				CC36C192218B842E00232F23 /* CoreGraphics.framework */,
+				CC36C199218B846F00232F23 /* CoreLocation.framework */,
+				CC36C19B218B847400232F23 /* CoreMedia.framework */,
 				CC36C190218B841A00232F23 /* CoreText.framework */,
-				CC36C18E218B841600232F23 /* UIKit.framework */,
+				058D09AF195D04C000B7D73C /* Foundation.framework */,
 				92DD2FE51BF4D05E0074C9DD /* MapKit.framework */,
 				051943141A1575670030A7D0 /* Photos.framework */,
-				051943121A1575630030A7D0 /* AssetsLibrary.framework */,
-				058D09AF195D04C000B7D73C /* Foundation.framework */,
-				058D09BD195D04C000B7D73C /* XCTest.framework */,
-				058D09C0195D04C000B7D73C /* UIKit.framework */,
+				A494A7D323C7BD3600418EA3 /* PINCache.framework */,
+				A494A7D223C7BD3600418EA3 /* PINOperation.framework */,
+				A494A7D423C7BD3600418EA3 /* PINRemoteImage.framework */,
+				CC36C197218B846300232F23 /* QuartzCore.framework */,
+				CC36C18E218B841600232F23 /* UIKit.framework */,
 				EFA731F0396842FF8AB635EE /* libPods-AsyncDisplayKitTests.a */,
+				058D09C0195D04C000B7D73C /* UIKit.framework */,
+				058D09BD195D04C000B7D73C /* XCTest.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -2702,6 +2714,10 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_GENERATE_TEST_COVERAGE_FILES = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"AS_USE_VIDEO=1",
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -2776,6 +2792,10 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
@@ -2809,6 +2829,10 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/Source/Info.plist";
@@ -2928,6 +2952,10 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = "PROFILE=1";
